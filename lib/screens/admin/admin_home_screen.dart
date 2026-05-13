@@ -351,7 +351,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 onPressed: () async {
                   await authService.logout();
                   if (mounted) {
-                    Navigator.of(context).pushReplacementNamed('/splash');
+                    // Clear all routes and return to StartupWrapper home (which shows LoginScreen)
+                    while (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    }
                   }
                 },
               ),

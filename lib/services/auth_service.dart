@@ -7,18 +7,22 @@ import 'api_client.dart';
 class AuthService extends ChangeNotifier {
   UserProfile? _currentUser;
   bool _isLoading = false;
+  bool _isInitialized = false;
   String? _errorMessage;
   Map<String, dynamic>? _fieldErrors;
 
   UserProfile? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
+  bool get isInitialized => _isInitialized;
   String? get errorMessage => _errorMessage;
   Map<String, dynamic>? get fieldErrors => _fieldErrors;
   bool get isAuthenticated => _currentUser != null;
 
 
-  /// Initialize auth state on app startup
+  /// Initialize auth state on app startup (called only once)
   Future<void> initialize() async {
+    if (_isInitialized) return; // Prevent re-initialization
+    
     _isLoading = true;
     notifyListeners();
 
@@ -31,6 +35,7 @@ class AuthService extends ChangeNotifier {
       _errorMessage = 'Failed to initialize: $e';
     }
 
+    _isInitialized = true;
     _isLoading = false;
     notifyListeners();
   }

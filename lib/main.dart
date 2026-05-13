@@ -9,6 +9,7 @@ import 'services/chatbot_service.dart';
 import 'services/notification_service.dart';
 import 'utils/app_colors.dart';
 import 'routes/app_routes.dart';
+import 'screens/auth/startup_wrapper.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
         title: 'MedQueue GH',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        initialRoute: AppRoutes.splash,
+        home: const StartupWrapper(),
         routes: AppRoutes.getRoutes(),
       ),
     );

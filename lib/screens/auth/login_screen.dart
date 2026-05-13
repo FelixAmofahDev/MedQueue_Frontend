@@ -32,15 +32,16 @@ class _LoginScreenState extends State<LoginScreen> {
       _passwordController.text,
     );
 
-    if (success && mounted) {
-      // Determine route based on user role
-      String route = AppRoutes.patientHome;
-      if (authService.isDoctor) {
-        route = AppRoutes.doctorHome;
-      } else if (authService.isAdmin) {
-        route = AppRoutes.adminHome;
-      }
-      Navigator.of(context).pushReplacementNamed(route);
+    // If login is successful, the StartupWrapper's Consumer will rebuild
+    // and automatically show the appropriate home screen. No need to navigate here.
+    if (!success && mounted) {
+      // Show a snackbar if login failed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authService.errorMessage ?? 'Login failed'),
+          backgroundColor: AppColors.emergencyRed,
+        ),
+      );
     }
   }
 
