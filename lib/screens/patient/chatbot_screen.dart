@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/chatbot_service.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/custom_button.dart';
-import '../../widgets/custom_textfield.dart';
+
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({Key? key}) : super(key: key);
@@ -309,20 +308,17 @@ class _MessageBubble extends StatelessWidget {
 
 class _SuggestionChip extends StatelessWidget {
   final String text;
-  final VoidCallback? onTap;
 
   const _SuggestionChip({
     required this.text,
-    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap ??
-          () {
-            context.read<ChatbotService>().sendMessage(text);
-          },
+      onTap: () {
+        context.read<ChatbotService>().sendMessage(text);
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(

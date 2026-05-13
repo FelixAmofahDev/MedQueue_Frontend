@@ -5,7 +5,7 @@ import '../../services/auth_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/custom_cards.dart';
 import '../../widgets/custom_components.dart';
-import '../../models/user_model.dart';
+
 
 class QueueTrackerScreen extends StatefulWidget {
   const QueueTrackerScreen({super.key});
@@ -18,7 +18,7 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen> {
   @override
   Widget build(BuildContext context) {
     final authService = context.read<AuthService>();
-    final user = authService.currentUser as Patient?;
+    final user = authService.currentUser;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -30,7 +30,7 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen> {
       body: Consumer<QueueService>(
         builder: (context, queueService, _) {
           return FutureBuilder(
-            future: queueService.getPatientQueuePosition(user?.id ?? ''),
+            future: queueService.getPatientQueuePosition((user?.id ?? 0).toString()),
             builder: (context, snapshot) {
               if (queueService.isLoading) {
                 return const CustomLoadingIndicator(message: 'Loading queue info...');

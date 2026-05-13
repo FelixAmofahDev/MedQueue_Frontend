@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/user_model.dart';
+
 import '../../services/auth_service.dart';
 import '../../services/queue_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/custom_button.dart';
-import '../../widgets/custom_cards.dart';
+
 import '../../widgets/custom_components.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
@@ -63,7 +63,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   Widget _buildHome() {
     return Consumer<AuthService>(
       builder: (context, authService, _) {
-        final doctor = authService.currentUser as Doctor?;
+        final doctor = authService.currentUser;
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -93,7 +93,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        doctor?.specialization ?? 'Specialist',
+                        doctor?.doctorProfile?.specialization ?? 'Specialist',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white70,
@@ -143,7 +143,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                   _StatCard(
                     icon: Icons.star,
                     label: 'Rating',
-                    value: '${doctor?.rating}',
+                    value: '${doctor?.doctorProfile?.consultationFee ?? "N/A"}',
                     color: AppColors.primaryGreen,
                   ),
                 ],
@@ -292,7 +292,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   Widget _buildProfile() {
     return Consumer<AuthService>(
       builder: (context, authService, _) {
-        final doctor = authService.currentUser as Doctor?;
+        final doctor = authService.currentUser;
         return Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -319,7 +319,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                doctor?.specialization ?? '',
+                doctor?.doctorProfile?.specialization ?? '',
                 style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textGray,

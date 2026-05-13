@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/appointment_model.dart';
 import '../../services/appointment_service.dart';
 import '../../services/auth_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_constants.dart';
 import '../../widgets/custom_button.dart';
-import '../../widgets/custom_cards.dart';
-import '../../widgets/custom_components.dart';
 import '../../widgets/custom_textfield.dart';
-import '../../models/user_model.dart';
+import '../../widgets/custom_components.dart';
+import '../../widgets/custom_cards.dart';
 
 class BookAppointmentScreen extends StatefulWidget {
   const BookAppointmentScreen({super.key});
@@ -217,7 +215,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                           final doctor = _doctors.firstWhere((d) => d['id'] == _selectedDoctor);
                           final user = context.read<AuthService>().currentUser;
                           final success = await appointmentService.bookAppointment(
-                            patientId: user?.id ?? '',
+                            patientId: (user?.id ?? '').toString(),
                             patientName: user?.fullName ?? '',
                             doctorId: _selectedDoctor!,
                             doctorName: doctor['name'],

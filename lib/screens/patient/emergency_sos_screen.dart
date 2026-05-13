@@ -6,8 +6,8 @@ import '../../utils/app_colors.dart';
 import '../../utils/app_constants.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_textfield.dart';
-import '../../widgets/custom_components.dart';
-import '../../models/user_model.dart';
+
+
 
 class EmergencySosScreen extends StatefulWidget {
   const EmergencySosScreen({super.key});
@@ -158,11 +158,11 @@ class _EmergencySosScreenState extends State<EmergencySosScreen> {
                           onPressed: _descriptionController.text.isEmpty
                               ? null
                               : () async {
-                                  final user = context.read<AuthService>().currentUser as Patient?;
+                                  final user = context.read<AuthService>().currentUser;
                                   final success = await emergencyService.requestEmergency(
-                                    patientId: user?.id ?? '',
+                                    patientId: (user?.id ?? 0).toString(),
                                     patientName: user?.fullName ?? '',
-                                    patientPhone: user?.phone ?? '',
+                                    patientPhone: user?.phoneNumber ?? '',
                                     description: _descriptionController.text,
                                     latitude: _shareLocation ? 5.6037 : null,
                                     longitude: _shareLocation ? -0.1870 : null,

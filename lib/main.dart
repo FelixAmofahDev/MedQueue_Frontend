@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'models/user_model.dart';
+
 import 'services/auth_service.dart';
 import 'services/appointment_service.dart';
 import 'services/queue_service.dart';

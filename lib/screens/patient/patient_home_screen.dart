@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/user_model.dart';
+
 import '../../services/auth_service.dart';
 import '../../services/appointment_service.dart';
 import '../../services/notification_service.dart';
@@ -121,7 +121,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           // Welcome Card
           Consumer<AuthService>(
             builder: (context, authService, _) {
-              final user = authService.currentUser as Patient?;
+              final user = authService.currentUser;
               return Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -388,7 +388,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   Widget _buildProfile() {
     return Consumer<AuthService>(
       builder: (context, authService, _) {
-        final user = authService.currentUser as Patient?;
+        final user = authService.currentUser;
         return Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -429,7 +429,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               // Profile Info
               _ProfileInfoTile(
                 label: 'Phone',
-                value: user?.phone ?? 'N/A',
+                value: user?.phoneNumber ?? 'N/A',
               ),
               _ProfileInfoTile(
                 label: 'Date of Birth',
@@ -437,11 +437,11 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               ),
               _ProfileInfoTile(
                 label: 'Blood Type',
-                value: user?.bloodType ?? 'N/A',
+                value: user?.patientProfile?.bloodGroup ?? 'N/A',
               ),
               _ProfileInfoTile(
                 label: 'Emergency Contact',
-                value: '${user?.emergencyContact} (${user?.emergencyPhone})',
+                value: '${user?.patientProfile?.emergencyContactName} (${user?.patientProfile?.emergencyContactPhone})',
               ),
               const SizedBox(height: 32),
               CustomButton(

@@ -1,82 +1,83 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/custom_button.dart';
+import '../../routes/app_routes.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
+
+  void _selectRole(BuildContext context, String role) {
+    Navigator.pushNamed(
+      context,
+      AppRoutes.register,
+      arguments: {'role': role},
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text('Select Your Role'),
+        title: const Text('Create Account'),
         centerTitle: true,
         elevation: 0,
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(
-                Icons.person_outline,
-                size: 80,
-                color: AppColors.primaryBlue,
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               const Text(
-                'Choose Your Role',
+                'Select Your Role',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.bold,
                   color: AppColors.textDark,
                 ),
-                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               const Text(
-                'Select the role that best describes you',
+                'Choose how you would like to use MedQueue',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
                   color: AppColors.textGray,
                 ),
-                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 40),
+              // Patient Card
               _RoleCard(
                 icon: Icons.person,
                 title: 'Patient',
-                description: 'Book appointments, view queue, and get health support',
-                onTap: () {
-                  Navigator.of(context).pushNamed('/login');
-                },
+                description: 'Book appointments and manage your health',
+                onTap: () => _selectRole(context, 'patient'),
               ),
               const SizedBox(height: 16),
+              // Doctor Card
               _RoleCard(
-                icon: Icons.local_hospital,
+                icon: Icons.medical_services,
                 title: 'Doctor',
-                description: 'Manage your schedule, consultations, and patient queue',
-                onTap: () {
-                  Navigator.of(context).pushNamed('/login');
-                },
+                description: 'Manage your practice and appointments',
+                onTap: () => _selectRole(context, 'doctor'),
               ),
-              const SizedBox(height: 16),
-              _RoleCard(
-                icon: Icons.admin_panel_settings,
-                title: 'Administrator',
-                description: 'Manage users, schedules, emergencies, and generate reports',
-                onTap: () {
-                  Navigator.of(context).pushNamed('/login');
-                },
-              ),
-              const SizedBox(height: 48),
-              CustomButton(
-                label: 'Create New Account',
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/register');
-                },
+              const Spacer(),
+              // Already have account
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Already have an account? '),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.login);
+                      },
+                      child: const Text('Sign In'),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -101,20 +102,14 @@ class _RoleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.backgroundWhite,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.borderColor),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowColor.withOpacity(0.05),
-              blurRadius: 8,
-            ),
-          ],
         ),
         child: Row(
           children: [
@@ -123,12 +118,12 @@ class _RoleCard extends StatelessWidget {
               height: 60,
               decoration: BoxDecoration(
                 color: AppColors.primaryBlue.withOpacity(0.1),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                size: 30,
                 color: AppColors.primaryBlue,
+                size: 30,
               ),
             ),
             const SizedBox(width: 16),
@@ -139,8 +134,8 @@ class _RoleCard extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                       color: AppColors.textDark,
                     ),
                   ),
@@ -151,17 +146,14 @@ class _RoleCard extends StatelessWidget {
                       fontSize: 12,
                       color: AppColors.textGray,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
             const Icon(
               Icons.arrow_forward_ios,
-              size: 16,
               color: AppColors.textGray,
+              size: 16,
             ),
           ],
         ),

@@ -42,7 +42,16 @@ class AppRoutes {
       onboarding: (context) => const OnboardingScreen(),
       roleSelection: (context) => const RoleSelectionScreen(),
       login: (context) => const LoginScreen(),
-      register: (context) => const RegisterScreen(),
+      register: (context) {
+        final arguments = ModalRoute.of(context)?.settings.arguments;
+        String? role;
+        if (arguments is String) {
+          role = arguments;
+        } else if (arguments is Map<String, dynamic>) {
+          role = arguments['role'] as String?;
+        }
+        return RegisterScreen(role: role);
+      },
       forgotPassword: (context) => const ForgotPasswordScreen(),
       patientHome: (context) => const PatientHomeScreen(),
       bookAppointment: (context) => const BookAppointmentScreen(),

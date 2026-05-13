@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/user_model.dart';
+
 import '../../services/auth_service.dart';
 import '../../services/emergency_service.dart';
 import '../../utils/app_colors.dart';
@@ -310,7 +310,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   Widget _buildProfile() {
     return Consumer<AuthService>(
       builder: (context, authService, _) {
-        final admin = authService.currentUser as Admin?;
+        final admin = authService.currentUser;
         return Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -337,7 +337,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                admin?.department ?? '',
+                'Admin Panel',
                 style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textGray,

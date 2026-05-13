@@ -1,81 +1,77 @@
 import 'package:flutter/foundation.dart';
-import '../models/user_model.dart';
+import '../models/api_response_model.dart';
+import '../utils/api_constants.dart';
+import '../utils/token_manager.dart';
+import 'api_client.dart';
 
 class AuthService extends ChangeNotifier {
-  User? _currentUser;
+  UserProfile? _currentUser;
   bool _isLoading = false;
   String? _errorMessage;
+  Map<String, dynamic>? _fieldErrors;
 
-  User? get currentUser => _currentUser;
+  UserProfile? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  Map<String, dynamic>? get fieldErrors => _fieldErrors;
   bool get isAuthenticated => _currentUser != null;
 
-  // Mock login
-  Future<bool> login(String email, String password) async {
+
+  /// Initialize auth state on app startup
+  Future<void> initialize() async {
     _isLoading = true;
-    _errorMessage = null;
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      // Check if user was previously logged in
+      if (await TokenManager.isAuthenticated()) {
+        _currentUser = await TokenManager.getCachedUserData();
+      }
+    } catch (e) {
+      _errorMessage = 'Failed to initialize: $e';
+    }
 
-      // Mock validation
-      if (email.isEmpty || password.isEmpty) {
-        _errorMessage = 'Email and password are required';
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Login with username/email/phone and password
+  Future<bool> login(String login, String password) async {
+    _isLoading = true;
+    _errorMessage = null;
+    _fieldErrors = null;
+    notifyListeners();
+
+    try {
+      final response = await ApiClient.post<LoginResponse>(
+        ApiConstants.loginEndpoint,
+        body: {
+          'login': login.trim(),
+          'password': password,
+        },
+        parser: (json) => LoginResponse.fromJson(json),
+      );
+
+      if (response.isSuccess && response.data != null) {
+        // Save tokens
+        await TokenManager.saveTokens(
+          response.data!.tokens.access,
+          response.data!.tokens.refresh,
+        );
+        
+        // Save user data
+        await TokenManager.saveUserData(response.data!.user);
+        _currentUser = response.data!.user;
         _isLoading = false;
         notifyListeners();
-        return false;
-      }
-
-      if (!email.contains('@')) {
-        _errorMessage = 'Invalid email format';
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-
-      // Mock user creation based on email
-      if (email.contains('doctor')) {
-        _currentUser = Doctor(
-          id: '1',
-          email: email,
-          password: password,
-          fullName: 'Dr. Kwasi Mensah',
-          phone: '+233551234567',
-          specialization: 'General Practice',
-          createdAt: DateTime.now(),
-          rating: 4.8,
-          yearsOfExperience: 8,
-        );
-      } else if (email.contains('admin')) {
-        _currentUser = Admin(
-          id: '2',
-          email: email,
-          password: password,
-          fullName: 'Admin User',
-          phone: '+233551234567',
-          department: 'Hospital Management',
-          createdAt: DateTime.now(),
-        );
+        return true;
       } else {
-        _currentUser = Patient(
-          id: '0',
-          email: email,
-          password: password,
-          fullName: 'John Osei',
-          phone: '+233551234567',
-          createdAt: DateTime.now(),
-          dateOfBirth: '1995-06-15',
-          bloodType: 'O+',
-          emergencyContact: 'Mary Osei',
-          emergencyPhone: '+233551234568',
-        );
+        _errorMessage = response.message;
+        _fieldErrors = response.errors;
+        _isLoading = false;
+        notifyListeners();
+        return false;
       }
-
-      _isLoading = false;
-      notifyListeners();
-      return true;
     } catch (e) {
       _errorMessage = 'Login failed: ${e.toString()}';
       _isLoading = false;
@@ -84,65 +80,72 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Mock register
-  Future<bool> register(String email, String password, String fullName, String phone, String role) async {
+  /// Register a new user account
+  Future<bool> register({
+    required String username,
+    required String email,
+    required String phoneNumber,
+    required String password,
+    required String passwordConfirm,
+    required String firstName,
+    required String lastName,
+    required String role,
+    String gender = 'unspecified',
+    String? dateOfBirth,
+    String? address,
+    String? bloodGroup,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
+    _fieldErrors = null;
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      final body = {
+        'username': username.trim(),
+        'email': email.trim(),
+        'phone_number': phoneNumber.trim(),
+        'password': password,
+        'password_confirm': passwordConfirm,
+        'first_name': firstName.trim(),
+        'last_name': lastName.trim(),
+        'role': role,
+        'gender': gender,
+      };
 
-      // Mock validation
-      if (email.isEmpty || password.isEmpty || fullName.isEmpty || phone.isEmpty) {
-        _errorMessage = 'All fields are required';
-        _isLoading = false;
-        notifyListeners();
-        return false;
+      if (dateOfBirth != null) body['date_of_birth'] = dateOfBirth;
+      if (address != null) body['address'] = address.trim();
+
+      // Add patient-specific fields
+      if (role == 'patient') {
+        if (bloodGroup != null) body['blood_group'] = bloodGroup;
+        if (emergencyContactName != null) {
+          body['emergency_contact_name'] = emergencyContactName.trim();
+        }
+        if (emergencyContactPhone != null) {
+          body['emergency_contact_phone'] = emergencyContactPhone.trim();
+        }
       }
 
-      if (password.length < 6) {
-        _errorMessage = 'Password must be at least 6 characters';
+      final response = await ApiClient.post<Map<String, dynamic>>(
+        ApiConstants.registerEndpoint,
+        body: body,
+        parser: (json) => json,
+      );
+
+      if (response.isSuccess) {
         _isLoading = false;
         notifyListeners();
-        return false;
-      }
-
-      // Mock user creation
-      if (role == 'doctor') {
-        _currentUser = Doctor(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          email: email,
-          password: password,
-          fullName: fullName,
-          phone: phone,
-          specialization: 'General Practice',
-          createdAt: DateTime.now(),
-        );
-      } else if (role == 'admin') {
-        _currentUser = Admin(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          email: email,
-          password: password,
-          fullName: fullName,
-          phone: phone,
-          department: 'Management',
-          createdAt: DateTime.now(),
-        );
+        return true; // Success - proceed to OTP verification
       } else {
-        _currentUser = Patient(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          email: email,
-          password: password,
-          fullName: fullName,
-          phone: phone,
-          createdAt: DateTime.now(),
-        );
+        _errorMessage = response.message;
+        _fieldErrors = response.errors;
+        _isLoading = false;
+        notifyListeners();
+        return false;
       }
-
-      _isLoading = false;
-      notifyListeners();
-      return true;
     } catch (e) {
       _errorMessage = 'Registration failed: ${e.toString()}';
       _isLoading = false;
@@ -151,48 +154,222 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Mock logout
-  Future<void> logout() async {
-    _isLoading = true;
-    notifyListeners();
-
-    await Future.delayed(const Duration(seconds: 1));
-
-    _currentUser = null;
-    _errorMessage = null;
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  // Mock forgot password
-  Future<bool> forgotPassword(String email) async {
+  /// Verify OTP during registration or password reset
+  Future<bool> verifyOTP({
+    required String phoneNumber,
+    required String code,
+    required String purpose,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
+    _fieldErrors = null;
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      final response = await ApiClient.post<Map<String, dynamic>>(
+        ApiConstants.otpVerifyEndpoint,
+        body: {
+          'phone_number': phoneNumber.trim(),
+          'code': code.trim(),
+          'purpose': purpose,
+        },
+        parser: (json) => json,
+      );
 
-      if (email.isEmpty || !email.contains('@')) {
-        _errorMessage = 'Please enter a valid email';
+      if (response.isSuccess && response.data != null) {
+        final data = response.data!;
+        
+        // Check if we got tokens back (registration verification)
+        if (data.containsKey('tokens') && data.containsKey('user')) {
+          final tokens = data['tokens'] as Map<String, dynamic>;
+          final user = data['user'] as Map<String, dynamic>;
+
+          await TokenManager.saveTokens(
+            tokens['access'],
+            tokens['refresh'],
+          );
+
+          _currentUser = UserProfile.fromJson(user);
+          await TokenManager.saveUserData(_currentUser!);
+        }
+
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = response.message;
+        _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
         return false;
       }
-
-      _isLoading = false;
-      notifyListeners();
-      return true;
     } catch (e) {
-      _errorMessage = 'Failed to process request: ${e.toString()}';
+      _errorMessage = 'OTP verification failed: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  void clearError() {
+  /// Send OTP to phone number
+  Future<bool> sendOTP(String phoneNumber, String purpose) async {
+    _isLoading = true;
     _errorMessage = null;
     notifyListeners();
+
+    try {
+      final response = await ApiClient.post<Map<String, dynamic>>(
+        ApiConstants.otpSendEndpoint,
+        body: {
+          'phone_number': phoneNumber.trim(),
+          'purpose': purpose,
+        },
+        parser: (json) => json,
+      );
+
+      if (response.isSuccess) {
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = response.message;
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Failed to send OTP: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
+
+  /// Request password reset
+  Future<bool> requestPasswordReset(String phoneOrEmail) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final body = phoneOrEmail.contains('@')
+          ? {'email': phoneOrEmail.trim()}
+          : {'phone_number': phoneOrEmail.trim()};
+
+      final response = await ApiClient.post<Map<String, dynamic>>(
+        ApiConstants.passwordResetRequestEndpoint,
+        body: body,
+        parser: (json) => json,
+      );
+
+      if (response.isSuccess) {
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = response.message;
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Password reset request failed: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Confirm password reset with OTP
+  Future<bool> confirmPasswordReset({
+    required String phoneNumber,
+    required String code,
+    required String newPassword,
+    required String newPasswordConfirm,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    _fieldErrors = null;
+    notifyListeners();
+
+    try {
+      final response = await ApiClient.post<Map<String, dynamic>>(
+        ApiConstants.passwordResetConfirmEndpoint,
+        body: {
+          'phone_number': phoneNumber.trim(),
+          'code': code.trim(),
+          'new_password': newPassword,
+          'new_password_confirm': newPasswordConfirm,
+        },
+        parser: (json) => json,
+      );
+
+      if (response.isSuccess) {
+        // Don't auto-login, let user go back to login screen
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = response.message;
+        _fieldErrors = response.errors;
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Password reset failed: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Logout
+  Future<void> logout() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final refreshToken = await TokenManager.getRefreshToken();
+      
+      if (refreshToken != null) {
+        // Attempt to logout on backend
+        await ApiClient.postWithAuth<Map<String, dynamic>>(
+          ApiConstants.logoutEndpoint,
+          body: {'refresh': refreshToken},
+          parser: (json) => json,
+        );
+      }
+    } catch (e) {
+      // Continue logout even if backend call fails
+    }
+
+    // Clear tokens locally
+    await TokenManager.clearAll();
+    _currentUser = null;
+    _errorMessage = null;
+    _fieldErrors = null;
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Clear error messages
+  void clearError() {
+    _errorMessage = null;
+    _fieldErrors = null;
+    notifyListeners();
+  }
+
+  /// Get user role
+  String? get userRole => _currentUser?.role;
+
+  /// Check if user is patient
+  bool get isPatient => userRole == 'patient';
+
+  /// Check if user is doctor
+  bool get isDoctor => userRole == 'doctor';
+
+  /// Check if user is admin
+  bool get isAdmin => userRole == 'admin';
 }
+
