@@ -91,6 +91,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       barrierDismissible: false,
       builder: (context) => _OTPDialog(
         phoneNumber: _phoneController.text.trim(),
+        username: _usernameController.text.trim(),
+        password: _passwordController.text,
         onSuccess: () {
           Navigator.pop(context); // Close OTP dialog
           Navigator.pushReplacementNamed(context, AppRoutes.patientHome);
@@ -515,10 +517,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
 class _OTPDialog extends StatefulWidget {
   final String phoneNumber;
+  final String username;
+  final String password;
   final VoidCallback onSuccess;
 
   const _OTPDialog({
     required this.phoneNumber,
+    required this.username,
+    required this.password,
     required this.onSuccess,
   });
 
@@ -557,6 +563,23 @@ class _OTPDialogState extends State<_OTPDialog> {
 
     if (success && mounted) {
       widget.onSuccess();
+    }
+  }
+
+  void _handleCancel() async {
+    // Auto-login user with their credentials
+    final success = await _authService.login(widget.username, widget.password);
+    
+    if (success && mounted) {
+      Navigator.pop(context); // Close OTP dialog
+      widget.onSuccess();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_authService.errorMessage ?? 'Auto-login failed'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -608,7 +631,7 @@ class _OTPDialogState extends State<_OTPDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _authService.isLoading ? null : _handleCancel,
           child: const Text('Cancel'),
         ),
         Consumer<AuthService>(
