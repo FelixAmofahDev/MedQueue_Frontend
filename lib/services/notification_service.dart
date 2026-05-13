@@ -4,7 +4,7 @@ import '../utils/app_dummy_data.dart';
 
 class NotificationService extends ChangeNotifier {
   final List<Notification> _notifications = [];
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   NotificationService() {
     _initializeDummyData();

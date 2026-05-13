@@ -10,14 +10,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color? backgroundColor;
 
   const CustomAppBar({
-    Key? key,
+    super.key,
     required this.title,
     this.showBackButton = false,
     this.onBackPressed,
     this.actions,
     this.bottom,
     this.backgroundColor,
-  }) : super(key: key);
+  });
 
   @override
   Size get preferredSize => Size.fromHeight(
@@ -56,11 +56,11 @@ class CustomBottomNavigation extends StatelessWidget {
   final List<BottomNavigationBarItem> items;
 
   const CustomBottomNavigation({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onItemTapped,
     required this.items,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -82,10 +82,10 @@ class CustomLoadingIndicator extends StatelessWidget {
   final Color? color;
 
   const CustomLoadingIndicator({
-    Key? key,
+    super.key,
     this.message,
     this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -123,13 +123,13 @@ class EmptyState extends StatelessWidget {
   final Color? iconColor;
 
   const EmptyState({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     required this.message,
     this.action,
     this.iconColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -181,12 +181,12 @@ class ErrorWidget extends StatelessWidget {
   final bool showRetryButton;
 
   const ErrorWidget({
-    Key? key,
+    super.key,
     this.title = 'Error',
     required this.message,
     this.onRetry,
     this.showRetryButton = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -242,11 +242,11 @@ class SuccessDialog extends StatelessWidget {
   final VoidCallback onDismiss;
 
   const SuccessDialog({
-    Key? key,
+    super.key,
     required this.title,
     required this.message,
     required this.onDismiss,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -278,7 +278,7 @@ class ConfirmDialog extends StatelessWidget {
   final Color? confirmButtonColor;
 
   const ConfirmDialog({
-    Key? key,
+    super.key,
     required this.title,
     required this.message,
     required this.confirmButtonText,
@@ -286,7 +286,7 @@ class ConfirmDialog extends StatelessWidget {
     required this.onConfirm,
     this.onCancel,
     this.confirmButtonColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

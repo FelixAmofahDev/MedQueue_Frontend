@@ -15,7 +15,7 @@ class CustomTextField extends StatefulWidget {
   final VoidCallback? onSuffixIconPressed;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.label,
     required this.hint,
     required this.controller,
@@ -27,7 +27,7 @@ class CustomTextField extends StatefulWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.onSuffixIconPressed,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -94,11 +94,11 @@ class PhoneTextField extends StatelessWidget {
   final String? Function(String?)? validator;
 
   const PhoneTextField({
-    Key? key,
+    super.key,
     required this.label,
     required this.controller,
     this.validator,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -138,12 +138,12 @@ class SearchTextField extends StatelessWidget {
   final VoidCallback? onClear;
 
   const SearchTextField({
-    Key? key,
+    super.key,
     required this.controller,
     this.hint = 'Search...',
     this.onChanged,
     this.onClear,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

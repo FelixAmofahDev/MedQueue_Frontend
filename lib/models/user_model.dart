@@ -40,25 +40,19 @@ class Patient extends User {
   final List<String> medicalHistory;
 
   Patient({
-    required String id,
-    required String email,
-    required String password,
-    required String fullName,
-    required String phone,
-    required DateTime createdAt,
+    required super.id,
+    required super.email,
+    required super.password,
+    required super.fullName,
+    required super.phone,
+    required super.createdAt,
     this.dateOfBirth,
     this.bloodType,
     this.emergencyContact,
     this.emergencyPhone,
     this.medicalHistory = const [],
   }) : super(
-    id: id,
-    email: email,
-    password: password,
-    fullName: fullName,
-    phone: phone,
     role: UserRole.patient,
-    createdAt: createdAt,
   );
 }
 
@@ -75,13 +69,13 @@ class Doctor extends User {
   final bool isAvailable;
 
   Doctor({
-    required String id,
-    required String email,
-    required String password,
-    required String fullName,
-    required String phone,
+    required super.id,
+    required super.email,
+    required super.password,
+    required super.fullName,
+    required super.phone,
     required this.specialization,
-    required DateTime createdAt,
+    required super.createdAt,
     this.medicalLicense,
     this.rating = 4.5,
     this.yearsOfExperience = 5,
@@ -91,13 +85,7 @@ class Doctor extends User {
     this.endTime = '05:00 PM',
     this.isAvailable = true,
   }) : super(
-    id: id,
-    email: email,
-    password: password,
-    fullName: fullName,
-    phone: phone,
     role: UserRole.doctor,
-    createdAt: createdAt,
   );
 }
 
@@ -107,21 +95,15 @@ class Admin extends User {
   final String? permissions;
 
   Admin({
-    required String id,
-    required String email,
-    required String password,
-    required String fullName,
-    required String phone,
+    required super.id,
+    required super.email,
+    required super.password,
+    required super.fullName,
+    required super.phone,
     required this.department,
-    required DateTime createdAt,
+    required super.createdAt,
     this.permissions,
   }) : super(
-    id: id,
-    email: email,
-    password: password,
-    fullName: fullName,
-    phone: phone,
     role: UserRole.admin,
-    createdAt: createdAt,
   );
 }

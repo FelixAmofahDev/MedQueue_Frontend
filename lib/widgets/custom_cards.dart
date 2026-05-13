@@ -12,7 +12,7 @@ class DoctorCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const DoctorCard({
-    Key? key,
+    super.key,
     required this.doctorId,
     required this.name,
     required this.specialization,
@@ -21,7 +21,7 @@ class DoctorCard extends StatelessWidget {
     required this.isAvailable,
     required this.nextAvailable,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +147,7 @@ class AppointmentCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const AppointmentCard({
-    Key? key,
+    super.key,
     required this.appointmentId,
     required this.doctorName,
     required this.specialization,
@@ -158,7 +158,7 @@ class AppointmentCard extends StatelessWidget {
     this.onReschedule,
     this.onCancel,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   Color _getStatusColor() {
     switch (status.toLowerCase()) {
@@ -343,13 +343,13 @@ class QueueCard extends StatelessWidget {
   final String status;
 
   const QueueCard({
-    Key? key,
+    super.key,
     required this.queueNumber,
     required this.patientName,
     required this.doctorName,
     required this.estimatedWait,
     required this.status,
-  }) : super(key: key);
+  });
 
   Color _getStatusColor() {
     switch (status.toLowerCase()) {
@@ -467,14 +467,14 @@ class NotificationCard extends StatelessWidget {
   final VoidCallback? onDismiss;
 
   const NotificationCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.message,
     required this.type,
     required this.isRead,
     required this.onTap,
     this.onDismiss,
-  }) : super(key: key);
+  });
 
   Color _getTypeColor() {
     switch (type.toLowerCase()) {

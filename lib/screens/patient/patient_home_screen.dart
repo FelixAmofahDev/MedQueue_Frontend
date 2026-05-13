@@ -10,7 +10,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_components.dart';
 
 class PatientHomeScreen extends StatefulWidget {
-  const PatientHomeScreen({Key? key}) : super(key: key);
+  const PatientHomeScreen({super.key});
 
   @override
   State<PatientHomeScreen> createState() => _PatientHomeScreenState();

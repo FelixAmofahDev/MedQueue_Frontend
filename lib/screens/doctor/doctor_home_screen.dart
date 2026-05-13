@@ -9,7 +9,7 @@ import '../../widgets/custom_cards.dart';
 import '../../widgets/custom_components.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
-  const DoctorHomeScreen({Key? key}) : super(key: key);
+  const DoctorHomeScreen({super.key});
 
   @override
   State<DoctorHomeScreen> createState() => _DoctorHomeScreenState();

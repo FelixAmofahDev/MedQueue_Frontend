@@ -11,7 +11,7 @@ class CustomButton extends StatelessWidget {
   final IconData? icon;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.label,
     this.onPressed,
     this.isLoading = false,
@@ -19,7 +19,7 @@ class CustomButton extends StatelessWidget {
     this.textColor,
     this.width,
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -75,14 +75,14 @@ class OutlineCustomButton extends StatelessWidget {
   final IconData? icon;
 
   const OutlineCustomButton({
-    Key? key,
+    super.key,
     required this.label,
     this.onPressed,
     this.borderColor,
     this.textColor,
     this.width,
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -135,11 +135,11 @@ class SecondaryButton extends StatelessWidget {
   final double? width;
 
   const SecondaryButton({
-    Key? key,
+    super.key,
     required this.label,
     this.onPressed,
     this.width,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -174,12 +174,12 @@ class EmergencyButton extends StatelessWidget {
   final double? width;
 
   const EmergencyButton({
-    Key? key,
+    super.key,
     required this.label,
     this.onPressed,
     this.isLoading = false,
     this.width,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

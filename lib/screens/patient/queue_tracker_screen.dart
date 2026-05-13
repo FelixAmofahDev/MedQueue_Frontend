@@ -8,7 +8,7 @@ import '../../widgets/custom_components.dart';
 import '../../models/user_model.dart';
 
 class QueueTrackerScreen extends StatefulWidget {
-  const QueueTrackerScreen({Key? key}) : super(key: key);
+  const QueueTrackerScreen({super.key});
 
   @override
   State<QueueTrackerScreen> createState() => _QueueTrackerScreenState();

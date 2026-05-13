@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
-import '../utils/app_dummy_data.dart';
 
 class AuthService extends ChangeNotifier {
   User? _currentUser;

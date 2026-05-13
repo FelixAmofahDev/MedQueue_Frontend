@@ -10,7 +10,7 @@ import '../../widgets/custom_components.dart';
 import '../../models/user_model.dart';
 
 class EmergencySosScreen extends StatefulWidget {
-  const EmergencySosScreen({Key? key}) : super(key: key);
+  const EmergencySosScreen({super.key});
 
   @override
   State<EmergencySosScreen> createState() => _EmergencySosScreenState();
