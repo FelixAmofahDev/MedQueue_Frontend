@@ -243,13 +243,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               return Column(
                 children: upcomingAppointments.map((apt) {
                   return AppointmentCard(
-                    appointmentId: apt.id,
-                    doctorName: apt.doctorName,
-                    specialization: apt.specialization,
-                    date: '${apt.appointmentDate.day}/${apt.appointmentDate.month}/${apt.appointmentDate.year}',
-                    time: apt.appointmentTime,
-                    reason: apt.reason,
-                    status: apt.status.name,
+                    appointment: apt,
                     onTap: () {},
                   );
                 }).toList(),
@@ -296,20 +290,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                             itemBuilder: (context, index) {
                               final apt = appointmentService.upcomingAppointments[index];
                               return AppointmentCard(
-                                appointmentId: apt.id,
-                                doctorName: apt.doctorName,
-                                specialization: apt.specialization,
-                                date:
-                                    '${apt.appointmentDate.day}/${apt.appointmentDate.month}/${apt.appointmentDate.year}',
-                                time: apt.appointmentTime,
-                                reason: apt.reason,
-                                status: apt.status.name,
-                                onReschedule: () {
-                                  _showRescheduleDialog(context, apt.id);
-                                },
-                                onCancel: () {
-                                  _showCancelDialog(context, apt.id, appointmentService);
-                                },
+                                appointment: apt,
                                 onTap: () {},
                               );
                             },
@@ -327,14 +308,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                             itemBuilder: (context, index) {
                               final apt = appointmentService.pastAppointments[index];
                               return AppointmentCard(
-                                appointmentId: apt.id,
-                                doctorName: apt.doctorName,
-                                specialization: apt.specialization,
-                                date:
-                                    '${apt.appointmentDate.day}/${apt.appointmentDate.month}/${apt.appointmentDate.year}',
-                                time: apt.appointmentTime,
-                                reason: apt.reason,
-                                status: apt.status.name,
+                                appointment: apt,
                                 onTap: () {},
                               );
                             },
@@ -464,28 +438,35 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     );
   }
 
-  void _showCancelDialog(BuildContext context, String appointmentId, AppointmentService appointmentService) {
+  void _showCancelDialog(BuildContext context, int appointmentId, AppointmentService appointmentService) {
     showDialog(
       context: context,
-      builder: (context) => ConfirmDialog(
-        title: 'Cancel Appointment',
-        message: 'Are you sure you want to cancel this appointment?',
-        confirmButtonText: 'Cancel Appointment',
-        cancelButtonText: 'Keep It',
-        confirmButtonColor: AppColors.emergencyRed,
-        onConfirm: () async {
-          await appointmentService.cancelAppointment(appointmentId);
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Appointment cancelled')),
-            );
-          }
-        },
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Appointment'),
+        content: const Text('Are you sure you want to cancel this appointment?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Keep It'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await appointmentService.cancelAppointment(appointmentId);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Appointment cancelled')),
+                );
+              }
+            },
+            child: const Text('Cancel Appointment'),
+          ),
+        ],
       ),
     );
   }
 
-  void _showRescheduleDialog(BuildContext context, String appointmentId) {
+  void _showRescheduleDialog(BuildContext context, int appointmentId) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

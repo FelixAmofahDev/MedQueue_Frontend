@@ -242,7 +242,7 @@ class _DoctorsBrowseScreenState extends State<DoctorsBrowseScreen> {
     BuildContext context,
     DoctorService doctorService,
   ) {
-    return ErrorWidget(
+    return AppErrorWidget(
       title: 'Failed to Load Doctors',
       message: doctorService.errorMessage ?? 'An error occurred',
       onRetry: _fetchDoctors,

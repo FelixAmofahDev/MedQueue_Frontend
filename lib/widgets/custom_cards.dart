@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../models/appointment_model.dart';
 
 class DoctorCard extends StatelessWidget {
   final String doctorId;
@@ -135,40 +136,33 @@ class DoctorCard extends StatelessWidget {
 }
 
 class AppointmentCard extends StatelessWidget {
-  final String appointmentId;
-  final String doctorName;
-  final String specialization;
-  final String date;
-  final String time;
-  final String reason;
-  final String status;
+  final Appointment appointment;
   final VoidCallback? onReschedule;
   final VoidCallback? onCancel;
   final VoidCallback onTap;
 
   const AppointmentCard({
     super.key,
-    required this.appointmentId,
-    required this.doctorName,
-    required this.specialization,
-    required this.date,
-    required this.time,
-    required this.reason,
-    required this.status,
+    required this.appointment,
     this.onReschedule,
     this.onCancel,
     required this.onTap,
   });
 
+  String get _status => appointment.status;
+
   Color _getStatusColor() {
-    switch (status.toLowerCase()) {
+    switch (_status.toLowerCase()) {
       case 'scheduled':
+      case 'confirmed':
+      case 'pending':
         return AppColors.infoBlue;
       case 'completed':
         return AppColors.successGreen;
       case 'cancelled':
         return AppColors.errorRed;
       case 'in progress':
+      case 'in_progress':
         return AppColors.warningOrange;
       default:
         return AppColors.textGray;
@@ -177,6 +171,13 @@ class AppointmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final doctorName = appointment.doctorDetail.fullName;
+    final specialization = appointment.doctorDetail.specialization;
+    final date = appointment.appointmentDate;
+    final time = appointment.appointmentTime;
+    final reason = appointment.reason;
+    final status = appointment.status;
+
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -290,7 +291,7 @@ class AppointmentCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (status.toLowerCase() == 'scheduled')
+              if (status.toLowerCase() == 'scheduled' || status.toLowerCase() == 'pending')
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Row(

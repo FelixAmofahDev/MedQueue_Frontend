@@ -174,13 +174,13 @@ class EmptyState extends StatelessWidget {
   }
 }
 
-class ErrorWidget extends StatelessWidget {
+class AppErrorWidget extends StatelessWidget {
   final String title;
   final String message;
   final VoidCallback? onRetry;
   final bool showRetryButton;
 
-  const ErrorWidget({
+  const AppErrorWidget({
     super.key,
     this.title = 'Error',
     required this.message,

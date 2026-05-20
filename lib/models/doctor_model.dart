@@ -8,6 +8,7 @@ class Doctor {
   final int avgConsultationMinutes;
   final bool isAcceptingPatients;
   final String profilePictureUrl;
+  final String? bio;
 
   Doctor({
     required this.id,
@@ -19,6 +20,7 @@ class Doctor {
     required this.avgConsultationMinutes,
     required this.isAcceptingPatients,
     required this.profilePictureUrl,
+    this.bio,
   });
 
   String get displayName => fullName;
@@ -39,6 +41,7 @@ class Doctor {
       avgConsultationMinutes: json['avg_consultation_minutes'] as int? ?? 15,
       isAcceptingPatients: json['is_accepting_patients'] as bool? ?? true,
       profilePictureUrl: json['profile_picture_url'] as String? ?? '',
+      bio: json['bio'] as String? ?? '',
     );
   }
 
@@ -52,5 +55,6 @@ class Doctor {
         'avg_consultation_minutes': avgConsultationMinutes,
         'is_accepting_patients': isAcceptingPatients,
         'profile_picture_url': profilePictureUrl,
+        'bio': bio,
       };
 }

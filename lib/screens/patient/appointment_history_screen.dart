@@ -194,7 +194,7 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
     BuildContext context,
     AppointmentService appointmentService,
   ) {
-    return ErrorWidget(
+    return AppErrorWidget(
       title: 'Failed to Load Appointments',
       message: appointmentService.errorMessage ?? 'An error occurred',
       onRetry: () => _fetchAppointments(),
