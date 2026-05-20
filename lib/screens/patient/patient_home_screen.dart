@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:medqueue_frontend/widgets/bottom_navbar.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
@@ -75,32 +76,14 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         ],
       ),
       body: _getBody(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Appointments',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+      bottomNavigationBar: ModernBottomNavBar(
+  selectedIndex: _selectedIndex,
+  onTap: (index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  },
+),
     ));
   }
 
@@ -120,147 +103,313 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   }
 
   Widget _buildHome() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Welcome Card
-          Consumer<AuthService>(
-            builder: (context, authService, _) {
-              final user = authService.currentUser;
-              return Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.primaryBlue, AppColors.primaryBlue.withOpacity(0.7)],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
+  return SingleChildScrollView(
+    physics: const BouncingScrollPhysics(),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Hero Welcome Banner ──────────────────────────────
+        Consumer<AuthService>(
+          builder: (context, authService, _) {
+            final user = authService.currentUser;
+            return Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primaryBlue, AppColors.primaryGreen],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withOpacity(0.35),
+                    blurRadius: 24,
+                    spreadRadius: -4,
+                    offset: const Offset(0, 10),
                   ),
-                  child: Column(
+                ],
+              ),
+              child: Stack(
+                children: [
+                  // Decorative circle
+                  Positioned(
+                    right: -20,
+                    top: -20,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.08),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 20,
+                    bottom: -30,
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.06),
+                      ),
+                    ),
+                  ),
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.circle,
+                                    color: Color(0xFF90EE90), size: 8),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Online',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                       Text(
-                        'Welcome, ${user?.fullName ?? "Patient"}!',
+                        'Hello, ${user?.fullName?.split(' ').first ?? "there"} 👋',
                         style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
                           color: Colors.white,
+                          letterSpacing: -0.5,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       const Text(
-                        'How can we help you today?',
+                        'How are you feeling today?',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.white70,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Health stats row
+                      Row(
+                        children: [
+                          _StatChip(
+                              icon: Icons.calendar_today_rounded,
+                              label: 'Next Appt',
+                              value: 'Today'),
+                          const SizedBox(width: 10),
+                          _StatChip(
+                              icon: Icons.queue_rounded,
+                              label: 'Queue',
+                              value: '#4'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+
+        const SizedBox(height: 28),
+
+        // ── Quick Actions ────────────────────────────────────
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'Quick Actions',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textDark,
+              letterSpacing: -0.3,
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.45,
+            children: [
+              _ModernQuickAction(
+                icon: Icons.calendar_month_rounded,
+                label: 'Book\nAppointment',
+                color: AppColors.primaryBlue,
+                bgColor: const Color(0xFFEBF4FF),
+                onTap: () =>
+                    Navigator.of(context).pushNamed('/patient/doctors'),
+              ),
+              _ModernQuickAction(
+                icon: Icons.queue_rounded,
+                label: 'Queue\nStatus',
+                color: AppColors.primaryGreen,
+                bgColor: const Color(0xFFE8F8F2),
+                onTap: () =>
+                    Navigator.of(context).pushNamed('/queue-tracker'),
+              ),
+              _ModernQuickAction(
+                icon: Icons.smart_toy_rounded,
+                label: 'AI Health\nAssistant',
+                color: AppColors.warningOrange,
+                bgColor: const Color(0xFFFFF5E6),
+                onTap: () =>
+                    Navigator.of(context).pushNamed('/patient-chatbot'),
+              ),
+              _ModernQuickAction(
+                icon: Icons.emergency_rounded,
+                label: 'Emergency\nSOS',
+                color: AppColors.emergencyRed,
+                bgColor: const Color(0xFFFFECEB),
+                onTap: () =>
+                    Navigator.of(context).pushNamed('/emergency-sos'),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 28),
+
+        // ── Upcoming Appointments ────────────────────────────
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Upcoming Appointments',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDark,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              TextButton(
+                onPressed: () => setState(() => _selectedIndex = 1),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primaryBlue,
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text(
+                  'See all',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Consumer<AppointmentService>(
+          builder: (context, appointmentService, _) {
+            final upcomingAppointments =
+                appointmentService.upcomingAppointments.take(3).toList();
+            if (upcomingAppointments.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 32, horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color: AppColors.borderColor.withOpacity(0.5)),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue.withOpacity(0.08),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.calendar_today_rounded,
+                          color: AppColors.primaryBlue,
+                          size: 32,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No upcoming appointments',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Book one to get started',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textGray,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: 140,
+                        child: CustomButton(
+                          label: 'Book Now',
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed('/patient/doctors'),
+                          width: 140,
                         ),
                       ),
                     ],
                   ),
                 ),
               );
-            },
-          ),
-          const SizedBox(height: 24),
-          // Quick Actions
-          const Text(
-            'Quick Actions',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              _QuickActionCard(
-                icon: Icons.calendar_today,
-                label: 'Book Appointment',
-                color: AppColors.primaryBlue,
-                onTap: () {
-                  Navigator.of(context).pushNamed('/patient/doctors');
-                },
-              ),
-              const SizedBox(width: 12),
-              _QuickActionCard(
-                icon: Icons.line_weight,
-                label: 'Queue Status',
-                color: AppColors.primaryGreen,
-                onTap: () {
-                  Navigator.of(context).pushNamed('/queue-tracker');
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              _QuickActionCard(
-                icon: Icons.local_hospital_outlined,
-                label: 'AI Chatbot',
-                color: AppColors.warningOrange,
-                onTap: () {
-                  Navigator.of(context).pushNamed('/patient-chatbot');
-                },
-              ),
-              const SizedBox(width: 12),
-              _QuickActionCard(
-                icon: Icons.emergency,
-                label: 'Emergency SOS',
-                color: AppColors.emergencyRed,
-                onTap: () {
-                  Navigator.of(context).pushNamed('/emergency-sos');
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          // Upcoming Appointments
-          const Text(
-            'Upcoming Appointments',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Consumer<AppointmentService>(
-            builder: (context, appointmentService, _) {
-              final upcomingAppointments = appointmentService.upcomingAppointments.take(3).toList();
-              if (upcomingAppointments.isEmpty) {
-                return EmptyState(
-                  icon: Icons.calendar_today,
-                  title: 'No Upcoming Appointments',
-                  message: 'Book an appointment to get started',
-                  action: CustomButton(
-                    label: 'Book Now',
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/patient/doctors');
-                    },
-                    width: 150,
-                  ),
+            }
+            return Column(
+              children: upcomingAppointments.map((apt) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: AppointmentCard(appointment: apt, onTap: () {}),
                 );
-              }
-              return Column(
-                children: upcomingAppointments.map((apt) {
-                  return AppointmentCard(
-                    appointment: apt,
-                    onTap: () {},
-                  );
-                }).toList(),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
+              }).toList(),
+            );
+          },
+        ),
+
+        const SizedBox(height: 24),
+      ],
+    ),
+  );
+}
 
   Widget _buildAppointments() {
     return Consumer<AppointmentService>(
@@ -367,83 +516,322 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   }
 
   Widget _buildProfile() {
-    return Consumer<AuthService>(
-      builder: (context, authService, _) {
-        final user = authService.currentUser;
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 24),
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withOpacity(0.2),
-                  shape: BoxShape.circle,
+  return Consumer<AuthService>(
+    builder: (context, authService, _) {
+      final user = authService.currentUser;
+      return SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            // ── Hero Header ──────────────────────────────────
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primaryBlue, AppColors.primaryGreen],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                child: const Icon(
-                  Icons.person,
-                  size: 60,
-                  color: AppColors.primaryBlue,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                user?.fullName ?? 'Patient',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textDark,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(36),
+                  bottomRight: Radius.circular(36),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                user?.email ?? '',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textGray,
-                ),
+              child: Stack(
+                children: [
+                  // Decorative circles
+                  Positioned(
+                    right: -30,
+                    top: 10,
+                    child: Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.07),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: -20,
+                    bottom: -20,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.05),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 40, 24, 36),
+                    child: Column(
+                      children: [
+                        // Avatar
+                        Container(
+                          width: 96,
+                          height: 96,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.2),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.5),
+                              width: 3,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.15),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.person_rounded,
+                            size: 52,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          user?.fullName ?? 'Patient',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: -0.4,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            user?.email ?? '',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Stats row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _ProfileStat(
+                              label: 'Appointments',
+                              value: '12',
+                              icon: Icons.calendar_month_rounded,
+                            ),
+                            Container(
+                              width: 1,
+                              height: 36,
+                              color: Colors.white.withOpacity(0.3),
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                            ),
+                            _ProfileStat(
+                              label: 'Blood Type',
+                              value: user?.patientProfile?.bloodGroup ?? '—',
+                              icon: Icons.bloodtype_rounded,
+                            ),
+                            Container(
+                              width: 1,
+                              height: 36,
+                              color: Colors.white.withOpacity(0.3),
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                            ),
+                            _ProfileStat(
+                              label: 'Status',
+                              value: 'Active',
+                              icon: Icons.verified_rounded,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 32),
-              // Profile Info
-              _ProfileInfoTile(
-                label: 'Phone',
-                value: user?.phoneNumber ?? 'N/A',
+            ),
+
+            const SizedBox(height: 24),
+
+            // ── Personal Info Card ───────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _SectionCard(
+                title: 'Personal Information',
+                icon: Icons.person_outline_rounded,
+                children: [
+                  _ModernInfoTile(
+                    icon: Icons.phone_rounded,
+                    label: 'Phone',
+                    value: user?.phoneNumber ?? 'N/A',
+                    iconColor: AppColors.primaryBlue,
+                  ),
+                  _ModernInfoTile(
+                    icon: Icons.cake_rounded,
+                    label: 'Date of Birth',
+                    value: user?.dateOfBirth ?? 'N/A',
+                    iconColor: AppColors.primaryGreen,
+                    showDivider: false,
+                  ),
+                ],
               ),
-              _ProfileInfoTile(
-                label: 'Date of Birth',
-                value: user?.dateOfBirth ?? 'N/A',
+            ),
+
+            const SizedBox(height: 12),
+
+            // ── Medical Info Card ────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _SectionCard(
+                title: 'Medical Information',
+                icon: Icons.medical_information_rounded,
+                children: [
+                  _ModernInfoTile(
+                    icon: Icons.bloodtype_rounded,
+                    label: 'Blood Type',
+                    value: user?.patientProfile?.bloodGroup ?? 'N/A',
+                    iconColor: AppColors.emergencyRed,
+                    valueWidget: user?.patientProfile?.bloodGroup != null
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.emergencyRed.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                  color: AppColors.emergencyRed
+                                      .withOpacity(0.3)),
+                            ),
+                            child: Text(
+                              user!.patientProfile!.bloodGroup!,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.emergencyRed,
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
+                  _ModernInfoTile(
+                    icon: Icons.contact_emergency_rounded,
+                    label: 'Emergency Contact',
+                    value:
+                        '${user?.patientProfile?.emergencyContactName ?? 'N/A'}\n${user?.patientProfile?.emergencyContactPhone ?? ''}',
+                    iconColor: AppColors.warningOrange,
+                    showDivider: false,
+                  ),
+                ],
               ),
-              _ProfileInfoTile(
-                label: 'Blood Type',
-                value: user?.patientProfile?.bloodGroup ?? 'N/A',
+            ),
+
+            const SizedBox(height: 24),
+
+            // ── Action Buttons ───────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  // Edit Profile
+                  GestureDetector(
+                    onTap: () {},
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            AppColors.primaryBlue,
+                            AppColors.primaryGreen
+                          ],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryBlue.withOpacity(0.35),
+                            blurRadius: 16,
+                            spreadRadius: -2,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.edit_rounded,
+                              color: Colors.white, size: 18),
+                          SizedBox(width: 8),
+                          Text(
+                            'Edit Profile',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Logout
+                  GestureDetector(
+                    onTap: () => _showLogoutDialog(context, authService),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.emergencyRed.withOpacity(0.07),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.emergencyRed.withOpacity(0.3),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.logout_rounded,
+                              color: AppColors.emergencyRed, size: 18),
+                          SizedBox(width: 8),
+                          Text(
+                            'Logout',
+                            style: TextStyle(
+                              color: AppColors.emergencyRed,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              _ProfileInfoTile(
-                label: 'Emergency Contact',
-                value: '${user?.patientProfile?.emergencyContactName} (${user?.patientProfile?.emergencyContactPhone})',
-              ),
-              const SizedBox(height: 32),
-              CustomButton(
-                label: 'Edit Profile',
-                onPressed: () {},
-              ),
-              const SizedBox(height: 12),
-              OutlineCustomButton(
-                label: 'Logout',
-                textColor: AppColors.emergencyRed,
-                borderColor: AppColors.emergencyRed,
-                onPressed: () {
-                  _showLogoutDialog(context, authService);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+            ),
+
+            const SizedBox(height: 32),
+          ],
+        ),
+      );
+    },
+  );
+}
 
   void _showCancelDialog(BuildContext context, int appointmentId, AppointmentService appointmentService) {
     showDialog(
@@ -512,93 +900,285 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   }
 }
 
-class _QuickActionCard extends StatelessWidget {
+class _ModernQuickAction extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
+  final Color bgColor;
   final VoidCallback onTap;
 
-  const _QuickActionCard({
+  const _ModernQuickAction({
     required this.icon,
     required this.label,
     required this.color,
+    required this.bgColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.3)),
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 28),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.15)),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.1),
+              blurRadius: 12,
+              spreadRadius: -2,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
               ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-                textAlign: TextAlign.center,
+              child: Icon(icon, color: color, size: 22),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: color,
+                height: 1.3,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _ProfileInfoTile extends StatelessWidget {
+class _StatChip extends StatelessWidget {
+  final IconData icon;
   final String label;
   final String value;
 
-  const _ProfileInfoTile({
+  const _StatChip({
+    required this.icon,
     required this.label,
     required this.value,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.25)),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textGray,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textDark,
-            ),
+          Icon(icon, color: Colors.white, size: 14),
+          const SizedBox(width: 6),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white60,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ProfileStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _ProfileStat({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+
+  const _SectionCard({
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderColor.withOpacity(0.4)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor.withOpacity(0.05),
+            blurRadius: 12,
+            spreadRadius: -2,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Row(
+              children: [
+                Icon(icon, size: 16, color: AppColors.textGray),
+                const SizedBox(width: 6),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textGray,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFF0F0F0)),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
+class _ModernInfoTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color iconColor;
+  final bool showDivider;
+  final Widget? valueWidget;
+
+  const _ModernInfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.iconColor,
+    this.showDivider = true,
+    this.valueWidget,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: iconColor, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textGray,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (valueWidget != null) valueWidget!,
+            ],
+          ),
+        ),
+        if (showDivider)
+          const Padding(
+            padding: EdgeInsets.only(left: 66),
+            child: Divider(height: 1, color: Color(0xFFF0F0F0)),
+          ),
+      ],
     );
   }
 }
