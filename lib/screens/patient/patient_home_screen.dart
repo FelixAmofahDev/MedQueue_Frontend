@@ -176,7 +176,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 label: 'Book Appointment',
                 color: AppColors.primaryBlue,
                 onTap: () {
-                  Navigator.of(context).pushNamed('/book-appointment');
+                  Navigator.of(context).pushNamed('/patient/doctors');
                 },
               ),
               const SizedBox(width: 12),

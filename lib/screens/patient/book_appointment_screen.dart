@@ -215,13 +215,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                           final doctor = _doctors.firstWhere((d) => d['id'] == _selectedDoctor);
                           final user = context.read<AuthService>().currentUser;
                           final success = await appointmentService.bookAppointment(
-                            patientId: (user?.id ?? '').toString(),
-                            patientName: user?.fullName ?? '',
-                            doctorId: _selectedDoctor!,
-                            doctorName: doctor['name'],
-                            specialization: doctor['specialization'],
-                            appointmentDate: _selectedDate!,
-                            appointmentTime: _selectedTime!,
+                            slotId: doctor['nextAvailableSlotId'],
                             reason: _reasonController.text,
                           );
                           if (mounted && success) {

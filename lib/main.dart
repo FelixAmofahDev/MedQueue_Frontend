@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'services/auth_service.dart';
 import 'services/appointment_service.dart';
+import 'services/doctor_service.dart';
 import 'services/queue_service.dart';
 import 'services/emergency_service.dart';
 import 'services/chatbot_service.dart';
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
         ChangeNotifierProvider(create: (_) => AppointmentService()),
+        ChangeNotifierProvider(create: (_) => DoctorService()),
         ChangeNotifierProvider(create: (_) => QueueService()),
         ChangeNotifierProvider(create: (_) => EmergencyService()),
         ChangeNotifierProvider(create: (_) => ChatbotService()),

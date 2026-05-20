@@ -11,6 +11,10 @@ import '../screens/patient/queue_tracker_screen.dart';
 import '../screens/patient/chatbot_screen.dart';
 import '../screens/patient/emergency_sos_screen.dart';
 import '../screens/patient/notifications_screen.dart';
+import '../screens/patient/doctors_browse_screen.dart';
+import '../screens/patient/doctor_detail_screen.dart';
+import '../screens/patient/appointment_booking_confirm_screen.dart';
+import '../screens/patient/appointment_history_screen.dart';
 import '../screens/doctor/doctor_home_screen.dart';
 import '../screens/admin/admin_home_screen.dart';
 
@@ -29,6 +33,12 @@ class AppRoutes {
   static const String patientChatbot = '/patient-chatbot';
   static const String emergencySos = '/emergency-sos';
   static const String patientNotifications = '/patient-notifications';
+  
+  // Appointment Routes (Patient - Phase 1)
+  static const String doctorsBrowse = '/patient/doctors';
+  static const String doctorDetail = '/patient/doctor-detail';
+  static const String appointmentBookingConfirm = '/patient/appointment-booking-confirm';
+  static const String appointmentsHistory = '/patient/appointments-history';
   
   // Doctor Routes
   static const String doctorHome = '/doctor-home';
@@ -59,6 +69,13 @@ class AppRoutes {
       patientChatbot: (context) => const ChatbotScreen(),
       emergencySos: (context) => const EmergencySosScreen(),
       patientNotifications: (context) => const NotificationsScreen(),
+      
+      // Appointment routes (Patient - Phase 1)
+      doctorsBrowse: (context) => const DoctorsBrowseScreen(),
+      doctorDetail: (context) => const DoctorDetailScreen(),
+      appointmentBookingConfirm: (context) => const AppointmentBookingConfirmScreen(),
+      appointmentsHistory: (context) => const AppointmentHistoryScreen(),
+      
       doctorHome: (context) => const DoctorHomeScreen(),
       adminHome: (context) => const AdminHomeScreen(),
     };
