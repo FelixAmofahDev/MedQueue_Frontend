@@ -37,23 +37,23 @@ class _StartupWrapperState extends State<StartupWrapper> {
       builder: (context, authService, _) {
         // Show splash screen while initializing
         if (!authService.isInitialized) {
-          return const SplashScreen();
+          return SplashScreen();
         }
 
         // User is authenticated - show appropriate home screen based on role
         if (authService.isAuthenticated) {
           if (authService.isDoctor) {
-            return const DoctorHomeScreen();
+            return DoctorHomeScreen();
           } else if (authService.isAdmin) {
-            return const AdminHomeScreen();
+            return AdminHomeScreen();
           } else {
             // Default to patient
-            return const PatientHomeScreen();
+            return PatientHomeScreen();
           }
         }
 
         // User is not authenticated - show login screen
-        return const LoginScreen();
+        return LoginScreen();
       },
     );
   }

@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
-import '../models/api_response_model.dart';
 import '../models/doctor_model.dart';
 import '../models/time_slot_model.dart';
-import '../utils/api_constants.dart';
 import 'api_client.dart';
 
 class DoctorService extends ChangeNotifier {
@@ -93,7 +91,7 @@ class DoctorService extends ChangeNotifier {
 
     try {
       String endpoint = '/auth/doctors/$doctorId/slots/?date=$date';
-
+      debugPrint('Fetching slots with endpoint: $endpoint');
       final response = await ApiClient.getWithAuth<SlotsResponse>(
         endpoint,
         parser: (json) => SlotsResponse.fromJson(json),

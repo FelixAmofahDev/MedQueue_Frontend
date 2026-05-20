@@ -241,7 +241,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                   action: CustomButton(
                     label: 'Book Now',
                     onPressed: () {
-                      Navigator.of(context).pushNamed('/book-appointment');
+                      Navigator.of(context).pushNamed('/patient/doctors');
                     },
                     width: 150,
                   ),
