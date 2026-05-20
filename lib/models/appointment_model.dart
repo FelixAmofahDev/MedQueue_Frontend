@@ -1,3 +1,5 @@
+import '../utils/type_helpers.dart';
+
 /// Appointment status enum matching backend values
 enum AppointmentStatus {
   pending,
@@ -66,7 +68,7 @@ class PatientDetail {
 
   factory PatientDetail.fromJson(Map<String, dynamic> json) {
     return PatientDetail(
-      id: json['id'] as int? ?? 0,
+      id: TypeHelpers.toInt(json['id']),
       fullName: json['full_name'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
@@ -98,7 +100,7 @@ class DoctorDetail {
 
   factory DoctorDetail.fromJson(Map<String, dynamic> json) {
     return DoctorDetail(
-      id: json['id'] as int? ?? 0,
+      id: TypeHelpers.toInt(json['id']),
       fullName: json['full_name'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
@@ -134,7 +136,7 @@ class SlotDetail {
 
   factory SlotDetail.fromJson(Map<String, dynamic> json) {
     return SlotDetail(
-      id: json['id'] as int? ?? 0,
+      id: TypeHelpers.toInt(json['id']),
       date: json['date'] as String? ?? '',
       startTime: json['start_time'] as String? ?? '',
       endTime: json['end_time'] as String? ?? '',
@@ -229,7 +231,7 @@ class Appointment {
 
   factory Appointment.fromJson(Map<String, dynamic> json) {
     return Appointment(
-      id: json['id'] as int? ?? 0,
+      id: TypeHelpers.toInt(json['id']),
       patientDetail: json['patient_detail'] != null
           ? PatientDetail.fromJson(
               json['patient_detail'] as Map<String, dynamic>)
@@ -253,7 +255,7 @@ class Appointment {
       status: json['status'] as String? ?? 'pending',
       reason: json['reason'] as String? ?? '',
       notes: json['notes'] as String? ?? '',
-      rescheduledFrom: json['rescheduled_from'] as int?,
+      rescheduledFrom: json['rescheduled_from'] != null ? TypeHelpers.toInt(json['rescheduled_from']) : null,
       cancellationReason: json['cancellation_reason'] as String? ?? '',
       canCancel: json['can_cancel'] as bool? ?? false,
       canReschedule: json['can_reschedule'] as bool? ?? false,
@@ -271,7 +273,7 @@ class Appointment {
   /// Create an Appointment from lightweight list format (from history endpoint)
   factory Appointment.fromListJson(Map<String, dynamic> json) {
     return Appointment(
-      id: json['id'] as int? ?? 0,
+      id: TypeHelpers.toInt(json['id']),
       patientDetail: PatientDetail(
         id: 0,
         fullName: json['patient_name'] as String? ?? '',

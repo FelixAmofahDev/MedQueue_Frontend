@@ -1,3 +1,5 @@
+import '../utils/type_helpers.dart';
+
 /// Slot status enum matching backend values
 enum SlotStatus { available, booked, blocked }
 
@@ -64,7 +66,7 @@ class TimeSlot {
 
   factory TimeSlot.fromJson(Map<String, dynamic> json) {
     return TimeSlot(
-      id: json['id'] as int? ?? 0,
+      id: TypeHelpers.toInt(json['id']),
       date: json['date'] as String? ?? '',
       startTime: json['start_time'] as String? ?? '',
       endTime: json['end_time'] as String? ?? '',

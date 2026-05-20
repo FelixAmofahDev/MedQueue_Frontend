@@ -1,3 +1,5 @@
+import '../utils/type_helpers.dart';
+
 class Doctor {
   final int id;
   final String fullName;
@@ -32,13 +34,13 @@ class Doctor {
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
     return Doctor(
-      id: json['id'] as int? ?? 0,
+      id: TypeHelpers.toInt(json['id']),
       fullName: json['full_name'] as String? ?? '',
       specialization: json['specialization'] as String? ?? '',
       hospitalName: json['hospital_name'] as String? ?? '',
-      consultationFee: (json['consultation_fee'] as num?)?.toDouble() ?? 0.0,
-      yearsOfExperience: json['years_of_experience'] as int? ?? 0,
-      avgConsultationMinutes: json['avg_consultation_minutes'] as int? ?? 15,
+      consultationFee: TypeHelpers.toDouble(json['consultation_fee']),
+      yearsOfExperience: TypeHelpers.toInt(json['years_of_experience']),
+      avgConsultationMinutes: TypeHelpers.toInt(json['avg_consultation_minutes']) == 0 ? 15 : TypeHelpers.toInt(json['avg_consultation_minutes']),
       isAcceptingPatients: json['is_accepting_patients'] as bool? ?? true,
       profilePictureUrl: json['profile_picture_url'] as String? ?? '',
       bio: json['bio'] as String? ?? '',

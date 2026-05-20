@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
@@ -21,9 +22,15 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        SystemNavigator.pop();
+        return false;
+      },
+      child: Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('MedQueue GH'),
         centerTitle: true,
         elevation: 0,
@@ -94,7 +101,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _getBody() {

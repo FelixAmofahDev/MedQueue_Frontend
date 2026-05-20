@@ -1,4 +1,8 @@
 
+import '../utils/type_helpers.dart';
+
+/// API Response Envelope
+
 
 /// API Response Envelope
 class ApiResponse<T> {
@@ -87,11 +91,11 @@ class TokenClaims {
 
   factory TokenClaims.fromJson(Map<String, dynamic> json) {
     return TokenClaims(
-      userId: json['user_id'] as int? ?? 0,
+      userId: TypeHelpers.toInt(json['user_id']),
       role: json['role'] as String? ?? 'patient',
       fullName: json['full_name'] as String? ?? '',
-      exp: json['exp'] as int? ?? 0,
-      iat: json['iat'] as int? ?? 0,
+      exp: TypeHelpers.toInt(json['exp']),
+      iat: TypeHelpers.toInt(json['iat']),
       jti: json['jti'] as String? ?? '',
     );
   }
@@ -149,7 +153,7 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      id: json['id'] as int? ?? 0,
+      id: TypeHelpers.toInt(json['id']),
       username: json['username'] as String? ?? '',
       email: json['email'] as String? ?? '',
       role: json['role'] as String? ?? 'patient',
@@ -177,6 +181,7 @@ class UserProfile {
       createdAt: DateTime.parse(json['created_at'] as String? ?? '2026-05-13'),
     );
   }
+
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -258,7 +263,7 @@ class DoctorProfile {
       specialization: json['specialization'] as String? ?? '',
       medicalLicense: json['medical_license'] as String?,
       hospitalName: json['hospital_name'] as String?,
-      consultationFee: (json['consultation_fee'] as num?)?.toDouble(),
+      consultationFee: TypeHelpers.toDouble(json['consultation_fee']),
     );
   }
 

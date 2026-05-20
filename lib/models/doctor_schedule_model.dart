@@ -1,3 +1,5 @@
+import '../utils/type_helpers.dart';
+
 /// Day of week values (0 = Monday, 6 = Sunday)
 enum DayOfWeek {
   monday,
@@ -70,14 +72,14 @@ class DoctorSchedule {
 
   factory DoctorSchedule.fromJson(Map<String, dynamic> json) {
     return DoctorSchedule(
-      id: json['id'] as int? ?? 0,
-      doctorId: json['doctor'] as int? ?? 0,
+      id: TypeHelpers.toInt(json['id']),
+      doctorId: TypeHelpers.toInt(json['doctor']),
       doctorName: json['doctor_name'] as String? ?? '',
-      dayOfWeek: json['day_of_week'] as int? ?? 0,
+      dayOfWeek: TypeHelpers.toInt(json['day_of_week']),
       startTime: json['start_time'] as String? ?? '08:00',
       endTime: json['end_time'] as String? ?? '17:00',
-      slotDurationMinutes: json['slot_duration_minutes'] as int? ?? 15,
-      maxPatientsPerDay: json['max_patients_per_day'] as int? ?? 30,
+      slotDurationMinutes: TypeHelpers.toInt(json['slot_duration_minutes']) == 0 ? 15 : TypeHelpers.toInt(json['slot_duration_minutes']),
+      maxPatientsPerDay: TypeHelpers.toInt(json['max_patients_per_day']) == 0 ? 30 : TypeHelpers.toInt(json['max_patients_per_day']),
       isActive: json['is_active'] as bool? ?? true,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
