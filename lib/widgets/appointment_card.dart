@@ -14,127 +14,326 @@ class AppointmentCard extends StatelessWidget {
     this.actions,
   }) : super(key: key);
 
-  Color get _statusColor {
+  _StatusStyle get _statusStyle {
     switch (appointment.status) {
       case 'pending':
-        return Colors.orange;
+        return _StatusStyle(
+          color: AppColors.warningOrange,
+          bg: const Color(0xFFFFF5E6),
+          icon: Icons.hourglass_top_rounded,
+        );
       case 'confirmed':
-        return Colors.blue;
+        return _StatusStyle(
+          color: AppColors.primaryBlue,
+          bg: const Color(0xFFEBF4FF),
+          icon: Icons.check_circle_rounded,
+        );
       case 'completed':
-        return Colors.green;
+        return _StatusStyle(
+          color: AppColors.successGreen,
+          bg: const Color(0xFFE8F8F2),
+          icon: Icons.task_alt_rounded,
+        );
       case 'cancelled':
-        return Colors.red;
+        return _StatusStyle(
+          color: AppColors.emergencyRed,
+          bg: const Color(0xFFFFECEB),
+          icon: Icons.cancel_rounded,
+        );
       case 'no_show':
-        return Colors.redAccent;
+        return _StatusStyle(
+          color: AppColors.emergencyLight,
+          bg: const Color(0xFFFFECEB),
+          icon: Icons.person_off_rounded,
+        );
       case 'rescheduled':
-        return Colors.purple;
+        return _StatusStyle(
+          color: const Color(0xFF8B5CF6),
+          bg: const Color(0xFFF3EEFF),
+          icon: Icons.update_rounded,
+        );
       default:
-        return Colors.grey;
+        return _StatusStyle(
+          color: AppColors.textGray,
+          bg: AppColors.backgroundGray,
+          icon: Icons.info_outline_rounded,
+        );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header: Doctor and Status
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final status = _statusStyle;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.borderColor.withOpacity(0.35)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryBlue.withOpacity(0.07),
+              blurRadius: 18,
+              spreadRadius: -2,
+              offset: const Offset(0, 6),
+            ),
+            BoxShadow(
+              color: AppColors.shadowColor.withOpacity(0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // ── Colored top accent bar ───────────────────────
+            Container(
+              height: 4,
+              decoration: BoxDecoration(
+                color: status.color,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dr. ${appointment.doctorDetail.fullName}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                  // ── Header row ─────────────────────────────
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Doctor avatar
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              AppColors.primaryBlue,
+                              AppColors.primaryGreen,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryBlue.withOpacity(0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          appointment.doctorDetail.specialization,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey,
+                        child: Center(
+                          child: Text(
+                            '',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // Doctor name & specialization
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Dr. ${appointment.doctorDetail.fullName}',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textDark,
+                                letterSpacing: -0.3,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 3),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color:
+                                    AppColors.primaryBlue.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                appointment.doctorDetail.specialization,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryBlue,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 8),
+
+                      // Status badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: status.bg,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                              color: status.color.withOpacity(0.25)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(status.icon,
+                                size: 12, color: status.color),
+                            const SizedBox(width: 4),
+                            Text(
+                              appointment.statusEnum.displayName,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: status.color,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+                  const Divider(height: 1, color: Color(0xFFF2F4F6)),
+                  const SizedBox(height: 12),
+
+                  // ── Date / Time / Reason row ───────────────
+                  Row(
+                    children: [
+                      _InfoChip(
+                        icon: Icons.calendar_month_rounded,
+                        label: appointment.appointmentDate,
+                        color: AppColors.primaryBlue,
+                      ),
+                      const SizedBox(width: 8),
+                      _InfoChip(
+                        icon: Icons.schedule_rounded,
+                        label: appointment.appointmentTime,
+                        color: AppColors.primaryGreen,
+                      ),
+                    ],
+                  ),
+
+                  if (appointment.reason.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.notes_rounded,
+                          size: 13,
+                          color: AppColors.textGray,
+                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            appointment.reason,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textGray,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _statusColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(6),
+                  ],
+
+                  // ── Action buttons ─────────────────────────
+                  if (actions != null && actions!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    const Divider(height: 1, color: Color(0xFFF2F4F6)),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: actions!
+                          .map((a) => Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: a,
+                              ))
+                          .toList(),
                     ),
-                    child: Text(
-                      appointment.statusEnum.displayName,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: _statusColor,
-                      ),
-                    ),
-                  ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 12),
-              // Date and Time
-              Row(
-                children: [
-                  const Icon(Icons.calendar_today,
-                      size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Text(
-                    appointment.appointmentDate,
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
-                  ),
-                  const SizedBox(width: 16),
-                  const Icon(Icons.access_time, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Text(
-                    appointment.appointmentTime,
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
-                  ),
-                ],
-              ),
-              // Reason (if present)
-              if (appointment.reason.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  'Reason: ${appointment.reason}',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              // Actions if provided
-              if (actions != null && actions!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: actions!,
-                ),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Supporting types & widgets ──────────────────────────────────
+
+class _StatusStyle {
+  final Color color;
+  final Color bg;
+  final IconData icon;
+  const _StatusStyle(
+      {required this.color, required this.bg, required this.icon});
+}
+
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _InfoChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.07),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.18)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

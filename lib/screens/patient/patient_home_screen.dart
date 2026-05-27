@@ -10,6 +10,7 @@ import '../../utils/app_colors.dart';
 import '../../widgets/custom_cards.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_components.dart';
+import 'appointment_history_screen.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   const PatientHomeScreen({super.key});
@@ -22,13 +23,18 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   int _selectedIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    // Fetch appointments on screen load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appointmentService = context.read<AppointmentService>();
+      appointmentService.fetchAppointments();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        SystemNavigator.pop();
-        return false;
-      },
-      child: Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -84,7 +90,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     });
   },
 ),
-    ));
+    );
   }
 
   Widget _getBody() {
@@ -295,188 +301,13 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         ),
 
         const SizedBox(height: 28),
-
-        // ── Upcoming Appointments ────────────────────────────
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Upcoming Appointments',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textDark,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              TextButton(
-                onPressed: () => setState(() => _selectedIndex = 1),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primaryBlue,
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'See all',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        Consumer<AppointmentService>(
-          builder: (context, appointmentService, _) {
-            final upcomingAppointments =
-                appointmentService.upcomingAppointments.take(3).toList();
-            if (upcomingAppointments.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 32, horizontal: 24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: AppColors.borderColor.withOpacity(0.5)),
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBlue.withOpacity(0.08),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.calendar_today_rounded,
-                          color: AppColors.primaryBlue,
-                          size: 32,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'No upcoming appointments',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textDark,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Book one to get started',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textGray,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: 140,
-                        child: CustomButton(
-                          label: 'Book Now',
-                          onPressed: () => Navigator.of(context)
-                              .pushNamed('/patient/doctors'),
-                          width: 140,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
-            return Column(
-              children: upcomingAppointments.map((apt) {
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: AppointmentCard(appointment: apt, onTap: () {}),
-                );
-              }).toList(),
-            );
-          },
-        ),
-
-        const SizedBox(height: 24),
       ],
     ),
   );
 }
 
   Widget _buildAppointments() {
-    return Consumer<AppointmentService>(
-      builder: (context, appointmentService, _) {
-        return DefaultTabController(
-          length: 2,
-          child: Column(
-            children: [
-              Container(
-                color: Colors.white,
-                child: const TabBar(
-                  labelColor: AppColors.primaryBlue,
-                  unselectedLabelColor: AppColors.textGray,
-                  indicatorColor: AppColors.primaryBlue,
-                  tabs: [
-                    Tab(text: 'Upcoming'),
-                    Tab(text: 'History'),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    // Upcoming
-                    appointmentService.upcomingAppointments.isEmpty
-                        ? EmptyState(
-                            icon: Icons.calendar_today,
-                            title: 'No Upcoming Appointments',
-                            message: 'Book an appointment to get started',
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: appointmentService.upcomingAppointments.length,
-                            itemBuilder: (context, index) {
-                              final apt = appointmentService.upcomingAppointments[index];
-                              return AppointmentCard(
-                                appointment: apt,
-                                onTap: () {},
-                              );
-                            },
-                          ),
-                    // History
-                    appointmentService.pastAppointments.isEmpty
-                        ? EmptyState(
-                            icon: Icons.history,
-                            title: 'No Appointment History',
-                            message: 'Your completed appointments will appear here',
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: appointmentService.pastAppointments.length,
-                            itemBuilder: (context, index) {
-                              final apt = appointmentService.pastAppointments[index];
-                              return AppointmentCard(
-                                appointment: apt,
-                                onTap: () {},
-                              );
-                            },
-                          ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    return const AppointmentHistoryScreen();
   }
 
   Widget _buildChat() {
