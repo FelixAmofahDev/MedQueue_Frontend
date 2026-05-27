@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:medqueue_frontend/screens/patient/patient_home_screen.dart';
 import 'package:provider/provider.dart';
 import '../../services/chatbot_service.dart';
 import '../../utils/app_colors.dart';
-
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({Key? key}) : super(key: key);
@@ -48,14 +48,23 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         title: const Text('AI Health Assistant'),
         centerTitle: true,
         elevation: 0,
+
+        leading: BackButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PatientHomeScreen()),
+            );
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
             onPressed: () {
               context.read<ChatbotService>().clearMessages();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Chat cleared')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Chat cleared')));
             },
           ),
         ],
@@ -122,10 +131,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             const SizedBox(height: 12),
             const Text(
               'Ask me about common symptoms, first aid, and health tips.',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textGray,
-              ),
+              style: TextStyle(fontSize: 14, color: AppColors.textGray),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -155,7 +161,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.info_outline, size: 16, color: AppColors.warningOrange),
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: AppColors.warningOrange,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -190,9 +200,14 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                     hintText: 'Ask about symptoms...',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
-                      borderSide: const BorderSide(color: AppColors.borderColor),
+                      borderSide: const BorderSide(
+                        color: AppColors.borderColor,
+                      ),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
                   maxLines: null,
                   textInputAction: TextInputAction.send,
@@ -200,7 +215,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                     if (value.isNotEmpty) {
                       context.read<ChatbotService>().sendMessage(value);
                       _messageController.clear();
-                      Future.delayed(const Duration(milliseconds: 300), _scrollToBottom);
+                      Future.delayed(
+                        const Duration(milliseconds: 300),
+                        _scrollToBottom,
+                      );
                     }
                   },
                 ),
@@ -217,9 +235,14 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                       ? null
                       : () {
                           if (_messageController.text.isNotEmpty) {
-                            context.read<ChatbotService>().sendMessage(_messageController.text);
+                            context.read<ChatbotService>().sendMessage(
+                              _messageController.text,
+                            );
                             _messageController.clear();
-                            Future.delayed(const Duration(milliseconds: 300), _scrollToBottom);
+                            Future.delayed(
+                              const Duration(milliseconds: 300),
+                              _scrollToBottom,
+                            );
                           }
                         },
                 ),
@@ -248,7 +271,9 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!isUser)
             Padding(
@@ -271,7 +296,9 @@ class _MessageBubble extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isUser ? AppColors.primaryBlue : AppColors.backgroundGray,
+                color: isUser
+                    ? AppColors.primaryBlue
+                    : AppColors.backgroundGray,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
@@ -309,9 +336,7 @@ class _MessageBubble extends StatelessWidget {
 class _SuggestionChip extends StatelessWidget {
   final String text;
 
-  const _SuggestionChip({
-    required this.text,
-  });
+  const _SuggestionChip({required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -328,10 +353,7 @@ class _SuggestionChip extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: const TextStyle(
-            fontSize: 13,
-            color: AppColors.primaryBlue,
-          ),
+          style: const TextStyle(fontSize: 13, color: AppColors.primaryBlue),
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medqueue_frontend/screens/patient/patient_home_screen.dart';
 import 'package:provider/provider.dart';
 import '../../services/appointment_service.dart';
 import '../../utils/app_colors.dart';
@@ -35,10 +36,16 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'My Appointments',
-        showBackButton: true,
-        backgroundColor: AppColors.primaryBlue,
+      appBar: AppBar(
+        leading: BackButton(
+    onPressed: () {
+Navigator.push(context, MaterialPageRoute(builder: (context) => PatientHomeScreen()));
+              },    
+  ),
+        title: const Text('My Appointments'),
+        centerTitle: true,
+        elevation: 0,
+        
       ),
       body: Consumer<AppointmentService>(
         builder: (context, appointmentService, _) {

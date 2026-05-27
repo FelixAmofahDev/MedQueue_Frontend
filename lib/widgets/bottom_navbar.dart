@@ -24,7 +24,7 @@ class _ModernBottomNavBarState extends State<ModernBottomNavBar>
 
   final List<_NavItem> _items = const [
     _NavItem(icon: Icons.home_rounded, label: 'Home'),
-    _NavItem(icon: Icons.calendar_month_rounded, label: 'Appointments'),
+    _NavItem(icon: Icons.calendar_month_rounded, label: 'Bookings'),
     _NavItem(icon: Icons.chat_bubble_rounded, label: 'Chat'),
     _NavItem(icon: Icons.person_rounded, label: 'Profile'),
   ];

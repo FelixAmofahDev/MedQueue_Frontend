@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:medqueue_frontend/screens/patient/patient_home_screen.dart';
 import 'package:provider/provider.dart';
 import '../../services/appointment_service.dart';
 import '../../utils/app_colors.dart';
@@ -22,7 +23,8 @@ class _AppointmentBookingConfirmScreenState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+    args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
         {};
   }
 
@@ -59,11 +61,8 @@ class _AppointmentBookingConfirmScreenState
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // Close dialog
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/patient/appointments-history',
-                  (route) => route.settings.name == '/patient-home',
-                );
+                // navigate to home screen at index 2
+                Navigator.push(context, MaterialPageRoute(builder: (context) => PatientHomeScreen(selectedIndex: 1)));
               },
               child: const Text('View Appointment'),
             ),
@@ -149,11 +148,7 @@ class _AppointmentBookingConfirmScreenState
                         Icons.calendar_today,
                       ),
                       const SizedBox(height: 12),
-                      _buildDetailRow(
-                        'Time',
-                        time,
-                        Icons.access_time,
-                      ),
+                      _buildDetailRow('Time', time, Icons.access_time),
                     ],
                   ),
                 ),
@@ -162,10 +157,7 @@ class _AppointmentBookingConfirmScreenState
               // Reason field
               const Text(
                 'Reason for Visit (Optional)',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               Consumer<AppointmentService>(
@@ -209,8 +201,10 @@ class _AppointmentBookingConfirmScreenState
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.error_outline,
-                                  color: Colors.red.shade700),
+                              Icon(
+                                Icons.error_outline,
+                                color: Colors.red.shade700,
+                              ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
@@ -238,8 +232,9 @@ class _AppointmentBookingConfirmScreenState
                 child: Consumer<AppointmentService>(
                   builder: (context, appointmentService, _) {
                     return ElevatedButton(
-                      onPressed:
-                          appointmentService.isLoading ? null : _bookAppointment,
+                      onPressed: appointmentService.isLoading
+                          ? null
+                          : _bookAppointment,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryBlue,
                         disabledBackgroundColor: Colors.grey.shade300,
@@ -311,10 +306,7 @@ class _AppointmentBookingConfirmScreenState
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
-                ),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
               const SizedBox(height: 2),
               Text(
