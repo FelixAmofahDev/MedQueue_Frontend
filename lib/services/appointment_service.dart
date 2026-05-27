@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import '../models/api_response_model.dart';
 import '../models/appointment_model.dart';
 import 'api_client.dart';
 
@@ -64,7 +63,7 @@ class AppointmentService extends ChangeNotifier {
             .join('&');
         endpoint += '?$queryString';
       }
-
+      debugPrint('calling endpoint: $endpoint');
       final response = await ApiClient.getWithAuth<AppointmentListResponse>(
         endpoint,
         parser: (json) => AppointmentListResponse.fromJson(json),
@@ -77,7 +76,7 @@ class AppointmentService extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _errorMessage = response.message ?? 'Failed to fetch appointments';
+        _errorMessage = response.message ;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
@@ -88,6 +87,46 @@ class AppointmentService extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  // fetch appointment detail by id
+
+  Future<Appointment?> fetchAppointmentDetail(int appointmentId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    _fieldErrors = null;
+    notifyListeners();
+
+    try {
+      final response = await ApiClient.getWithAuth<Appointment>(
+        '/auth/$appointmentId/',
+        parser: (json) => Appointment.fromJson(json),
+      );
+
+      if (response.isSuccess && response.data != null) {
+        // Update or add the appointment in the list
+        final index = _appointments.indexWhere((a) => a.id == appointmentId);
+        if (index != -1) {
+          _appointments[index] = response.data!;
+        } else {
+          _appointments.add(response.data!);
+        }
+        _isLoading = false;
+        notifyListeners();
+        return response.data;
+      } else {
+        _errorMessage = response.message ;
+        _fieldErrors = response.errors;
+        _isLoading = false;
+        notifyListeners();
+        return null;
+      }
+    } catch (e) {
+      _errorMessage = 'Network error: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return null;
     }
   }
 
@@ -119,7 +158,7 @@ class AppointmentService extends ChangeNotifier {
         notifyListeners();
         return response.data;
       } else {
-        _errorMessage = response.message ?? 'Failed to book appointment';
+        _errorMessage = response.message ;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
@@ -165,7 +204,7 @@ class AppointmentService extends ChangeNotifier {
         notifyListeners();
         return response.data;
       } else {
-        _errorMessage = response.message ?? 'Failed to cancel appointment';
+        _errorMessage = response.message ;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
@@ -213,7 +252,7 @@ class AppointmentService extends ChangeNotifier {
         notifyListeners();
         return response.data;
       } else {
-        _errorMessage = response.message ?? 'Failed to reschedule appointment';
+        _errorMessage = response.message ;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
@@ -261,7 +300,7 @@ class AppointmentService extends ChangeNotifier {
         notifyListeners();
         return response.data;
       } else {
-        _errorMessage = response.message ?? 'Failed to update appointment';
+        _errorMessage = response.message ;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();

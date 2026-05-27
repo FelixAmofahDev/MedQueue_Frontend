@@ -67,7 +67,7 @@ class DoctorService extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _errorMessage = response.message ?? 'Failed to fetch doctors';
+        _errorMessage = response.message ;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
@@ -104,7 +104,7 @@ class DoctorService extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _errorMessage = response.message ?? 'Failed to fetch slots';
+        _errorMessage = response.message ;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
