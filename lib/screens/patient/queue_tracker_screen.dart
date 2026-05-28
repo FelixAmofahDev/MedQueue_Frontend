@@ -89,6 +89,7 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen> {
       } catch (e) {
         appointment = null;
       }
+      debugPrint('Fetched appointment details ${appointment?.toJson()}');
 
       if (!mounted) return;
       setState(() {

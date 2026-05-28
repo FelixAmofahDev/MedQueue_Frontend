@@ -24,6 +24,7 @@ class AppointmentService extends ChangeNotifier {
 
   /// Fetch all user's appointments (patient/doctor specific based on JWT token role)
   /// Optional filters: status, from_date, to_date, doctor_id, page, page_size
+  /// Fetches full details for each appointment by calling the detail endpoint
   Future<bool> fetchAppointments({
     String? status,
     String? fromDate,
@@ -71,7 +72,16 @@ class AppointmentService extends ChangeNotifier {
 
       if (response.isSuccess && response.data != null) {
         _appointments.clear();
-        _appointments.addAll(response.data!.appointments);
+        
+        // Fetch full details for each appointment in parallel
+        final appointmentIds = response.data!.appointments.map((a) => a.id).toList();
+        final detailFutures = appointmentIds.map((id) => _fetchDetailQuietly(id)).toList();
+        final detailedAppointments = await Future.wait(detailFutures);
+        
+        // Filter out nulls and add to list
+        final validAppointments = detailedAppointments.whereType<Appointment>().toList();
+        _appointments.addAll(validAppointments);
+        
         _isLoading = false;
         notifyListeners();
         return true;
@@ -87,6 +97,25 @@ class AppointmentService extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  /// Helper function to fetch appointment detail without updating loading state
+  /// Used internally by fetchAppointments to fetch details in parallel
+  Future<Appointment?> _fetchDetailQuietly(int appointmentId) async {
+    try {
+      final response = await ApiClient.getWithAuth<Appointment>(
+        '/auth/$appointmentId/',
+        parser: (json) => Appointment.fromJson(json),
+      );
+
+      if (response.isSuccess && response.data != null) {
+        return response.data;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching appointment detail for ID $appointmentId: $e');
+      return null;
     }
   }
 
