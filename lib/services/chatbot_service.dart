@@ -112,8 +112,7 @@ final String _systemPrompt = '''
         final String rawResponse = data['choices'][0]['message']['content'].toString();
         final String botResponse = _formatBotResponse(rawResponse);
 
-        debugPrint('Raw API Response: $rawResponse');
-        debugPrint('Formatted Bot Response: $botResponse');
+        
 
         // Add bot message
         _messages.add(
