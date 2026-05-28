@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:medqueue_frontend/widgets/appointment_card.dart';
+import 'package:medqueue_frontend/widgets/custom_cards.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../services/queue_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/appointment_service.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/custom_cards.dart';
 import '../../widgets/custom_components.dart';
 import '../../models/queue_model.dart';
+import '../../models/appointment_model.dart';
 
 
 class QueueTrackerScreen extends StatefulWidget {
@@ -17,6 +20,8 @@ class QueueTrackerScreen extends StatefulWidget {
 }
 
 class _QueueTrackerScreenState extends State<QueueTrackerScreen> {
+  Appointment? _currentAppointment;
+  bool _isLoadingAppointment = false;
   @override
   void initState() {
     super.initState();
@@ -37,6 +42,8 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen> {
             final nextAppointmentDateStr = upcomingAppointments.first.appointmentDate;
             final nextAppointmentDate = DateTime.parse(nextAppointmentDateStr);
             queueService.startPatientQueuePolling(date: nextAppointmentDate);
+            // Fetch appointment details
+            _fetchAppointmentForDate(nextAppointmentDate);
           } else {
             // No upcoming appointments, poll for today
             queueService.startPatientQueuePolling();
@@ -45,6 +52,10 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen> {
       } else {
         // Already have a polling date (from appointment confirmation), just start polling
         queueService.startPatientQueuePolling();
+        // Fetch appointment details for the polling date
+        if (queueService.currentPollingDate != null) {
+          _fetchAppointmentForDate(queueService.currentPollingDate!);
+        }
       }
     });
   }
@@ -54,6 +65,42 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen> {
     final queueService = context.read<QueueService>();
     queueService.clearState();
     super.dispose();
+  }
+
+  Future<void> _fetchAppointmentForDate(DateTime date) async {
+    if (!mounted) return;
+    setState(() {
+      _isLoadingAppointment = true;
+    });
+
+    try {
+      final appointmentService = context.read<AppointmentService>();
+      await appointmentService.fetchAppointments();
+      
+      if (!mounted) return;
+
+      // Find the appointment for this date
+      final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      Appointment? appointment;
+      try {
+        appointment = appointmentService.appointments.firstWhere(
+          (apt) => apt.appointmentDate == dateStr && apt.status != 'cancelled',
+        );
+      } catch (e) {
+        appointment = null;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _currentAppointment = appointment;
+        _isLoadingAppointment = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingAppointment = false;
+      });
+    }
   }
 
   @override
@@ -91,6 +138,28 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen> {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
+                const SizedBox(height: 16),
+                // Appointment Details Card
+                if (_currentAppointment != null)
+                  AppointmentCard(
+                        appointment: _currentAppointment!,
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            '/patient/appointment-detail',
+                            arguments: _currentAppointment!.id,
+                          );
+                        },
+                      )
+                else if (_isLoadingAppointment)
+                  const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: SizedBox(
+                        height: 80,
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 24),
                 // Queue Number Badge
                 _buildQueueNumberBadge(queueEntry.queueNumber),
@@ -142,6 +211,8 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen> {
       ),
     );
   }
+
+ 
 
   Widget _buildStatusCard(QueueEntry entry) {
     final statusColor = _getStatusColor(entry.status);

@@ -135,13 +135,13 @@ class DoctorCard extends StatelessWidget {
   }
 }
 
-class AppointmentCard extends StatelessWidget {
+class RoughAppointmentCard extends StatelessWidget {
   final Appointment appointment;
   final VoidCallback? onReschedule;
   final VoidCallback? onCancel;
   final VoidCallback onTap;
 
-  const AppointmentCard({
+  const RoughAppointmentCard({
     super.key,
     required this.appointment,
     this.onReschedule,
