@@ -1,185 +1,315 @@
 import 'package:flutter/foundation.dart';
+import 'dart:async';
 import '../models/queue_model.dart';
-import '../utils/app_dummy_data.dart';
+import 'queue_api_service.dart';
 
+/// Queue Service with real-time polling and Firebase fallback
 class QueueService extends ChangeNotifier {
-  final List<QueueEntry> _queueEntries = [];
+  final QueueApiService _apiService = QueueApiService();
+
+  // Patient queue state
+  QueueEntry? _currentQueueEntry;
+  WaitTimeInfo? _waitTimeInfo;
   bool _isLoading = false;
   String? _errorMessage;
 
-  QueueService() {
-    _initializeDummyData();
-  }
+  // Doctor queue state
+  QueueSession? _currentQueueSession;
+  bool _isDoctorQueueLoading = false;
+  String? _doctorQueueError;
 
-  void _initializeDummyData() {
-    int counter = 1;
-    for (var entry in AppDummyData.queueEntries) {
-      _queueEntries.add(
-        QueueEntry(
-          id: entry['id'],
-          appointmentId: 'apt_${entry['id']}',
-          patientId: 'pat_${entry['id']}',
-          patientName: entry['patientName'],
-          doctorId: '1',
-          doctorName: entry['doctorName'],
-          queueNumber: entry['queueNumber'],
-          estimatedWaitTime: entry['estimatedWait'],
-          status: QueueStatus.values.byName(entry['status']),
-          joinedAt: DateTime.now().subtract(Duration(minutes: counter * 15)),
-        ),
-      );
-      counter++;
-    }
-  }
+  // Polling
+  Timer? _pollTimer;
+  Duration _pollInterval = const Duration(seconds: 5);
+  DateTime? _currentPollingDate; // Store the date being polled
 
-  List<QueueEntry> get queueEntries => _queueEntries;
+  // Getters
+  QueueEntry? get currentQueueEntry => _currentQueueEntry;
+  WaitTimeInfo? get waitTimeInfo => _waitTimeInfo;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Get patient's queue position
-  Future<QueueEntry?> getPatientQueuePosition(String patientId) async {
+  QueueSession? get currentQueueSession => _currentQueueSession;
+  bool get isDoctorQueueLoading => _isDoctorQueueLoading;
+  String? get doctorQueueError => _doctorQueueError;
+
+  bool get inQueue => _currentQueueEntry != null;
+  int? get positionInQueue => _currentQueueEntry?.queueNumber;
+  int? get positionsAhead => _currentQueueEntry?.positionsAhead;
+  int? get estimatedWaitMinutes => _currentQueueEntry?.estimatedWaitMinutes;
+  DateTime? get currentPollingDate => _currentPollingDate;
+
+  @override
+  void dispose() {
+    _stopPolling();
+    super.dispose();
+  }
+
+  // ============================================================================
+  // PATIENT OPERATIONS
+  // ============================================================================
+
+  /// Fetch patient's queue position once
+  Future<void> fetchPatientQueuePosition({DateTime? date}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
+      // Use stored polling date if no date provided
+      final targetDate = date ?? _currentPollingDate;
+      final response = await _apiService.getPatientQueuePosition(date: targetDate);
 
-      final entry = _queueEntries.firstWhere(
-        (q) => q.patientId == patientId && q.status != QueueStatus.completed,
-        orElse: () => QueueEntry(
-          id: '',
-          appointmentId: '',
-          patientId: '',
-          patientName: '',
-          doctorId: '',
-          doctorName: '',
-          queueNumber: 0,
-          estimatedWaitTime: 0,
-          status: QueueStatus.cancelled,
-          joinedAt: DateTime.now(),
-        ),
-      );
-
-      _isLoading = false;
-      notifyListeners();
-      return entry.id.isNotEmpty ? entry : null;
+      if (response.isSuccess && response.data != null) {
+        _currentQueueEntry = response.data!.entry;
+        _waitTimeInfo = response.data!.waitInfo;
+      } else {
+        _errorMessage = response.message;
+        _currentQueueEntry = null;
+        _waitTimeInfo = null;
+      }
     } catch (e) {
       _errorMessage = 'Failed to fetch queue position: ${e.toString()}';
+      _currentQueueEntry = null;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return null;
     }
   }
 
-  // Join virtual queue
-  Future<bool> joinVirtualQueue(
-    String patientId,
-    String patientName,
-    String appointmentId,
-    String doctorId,
-    String doctorName,
-  ) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  /// Start auto-polling patient queue position
+  void startPatientQueuePolling({DateTime? date}) {
+    // Clear any existing timer
+    _stopPolling();
 
-    try {
-      await Future.delayed(const Duration(seconds: 2));
-
-      final queueNumber = _queueEntries.isEmpty
-          ? 1
-          : _queueEntries.map((q) => q.queueNumber).reduce((a, b) => a > b ? a : b) + 1;
-
-      final newEntry = QueueEntry(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        appointmentId: appointmentId,
-        patientId: patientId,
-        patientName: patientName,
-        doctorId: doctorId,
-        doctorName: doctorName,
-        queueNumber: queueNumber,
-        estimatedWaitTime: queueNumber * 15,
-        status: QueueStatus.waiting,
-        joinedAt: DateTime.now(),
-      );
-
-      _queueEntries.add(newEntry);
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage = 'Failed to join queue: ${e.toString()}';
-      _isLoading = false;
-      notifyListeners();
-      return false;
+    // Update the polling date only if a new one is provided
+    if (date != null) {
+      _currentPollingDate = date;
     }
-  }
 
-  // Get all queue entries for a doctor
-  Future<List<QueueEntry>> getQueueForDoctor(String doctorId) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+    // Fetch immediately using stored date or provided date
+    fetchPatientQueuePosition(date: _currentPollingDate);
 
-    try {
-      await Future.delayed(const Duration(seconds: 1));
-
-      final doctorQueue = _queueEntries
-          .where((q) => q.doctorId == doctorId && q.status != QueueStatus.completed)
-          .toList();
-
-      _isLoading = false;
-      notifyListeners();
-      return doctorQueue;
-    } catch (e) {
-      _errorMessage = 'Failed to fetch queue: ${e.toString()}';
-      _isLoading = false;
-      notifyListeners();
-      return [];
-    }
-  }
-
-  // Mark patient as completed
-  Future<bool> completePatient(String queueEntryId) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      await Future.delayed(const Duration(seconds: 1));
-
-      final index = _queueEntries.indexWhere((q) => q.id == queueEntryId);
-      if (index != -1) {
-        final entry = _queueEntries[index];
-        _queueEntries[index] = QueueEntry(
-          id: entry.id,
-          appointmentId: entry.appointmentId,
-          patientId: entry.patientId,
-          patientName: entry.patientName,
-          doctorId: entry.doctorId,
-          doctorName: entry.doctorName,
-          queueNumber: entry.queueNumber,
-          estimatedWaitTime: entry.estimatedWaitTime,
-          status: QueueStatus.completed,
-          joinedAt: entry.joinedAt,
-          completedAt: DateTime.now(),
-        );
+    // Then poll at interval
+    _pollTimer = Timer.periodic(_pollInterval, (_) {
+      if (_currentQueueEntry != null) {
+        // Only continue polling if still in queue
+        fetchPatientQueuePosition(date: _currentPollingDate);
+      } else {
+        _stopPolling();
       }
+    });
+  }
 
-      _isLoading = false;
-      notifyListeners();
-      return true;
+  /// Stop polling
+  void _stopPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = null;
+  }
+
+  /// Patient leaves the queue
+  Future<bool> leaveQueue() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.leaveQueue();
+
+      if (response.isSuccess) {
+        _currentQueueEntry = null;
+        _waitTimeInfo = null;
+        _stopPolling();
+        return true;
+      } else {
+        _errorMessage = response.message;
+        return false;
+      }
     } catch (e) {
-      _errorMessage = 'Failed to complete patient: ${e.toString()}';
+      _errorMessage = 'Failed to leave queue: ${e.toString()}';
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return false;
     }
   }
 
-  void clearError() {
+  // ============================================================================
+  // DOCTOR OPERATIONS
+  // ============================================================================
+
+  /// Fetch doctor's queue
+  Future<void> fetchDoctorQueue({DateTime? date}) async {
+    _isDoctorQueueLoading = true;
+    _doctorQueueError = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.getDoctorQueue(date: date);
+
+      if (response.isSuccess && response.data != null) {
+        _currentQueueSession = response.data;
+      } else {
+        _doctorQueueError = response.message;
+        _currentQueueSession = null;
+      }
+    } catch (e) {
+      _doctorQueueError = 'Failed to fetch queue: ${e.toString()}';
+      _currentQueueSession = null;
+    } finally {
+      _isDoctorQueueLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Start auto-polling doctor's queue
+  void startDoctorQueuePolling({DateTime? date}) {
+    _stopPolling();
+    fetchDoctorQueue(date: date);
+
+    _pollTimer = Timer.periodic(_pollInterval, (_) {
+      if (_currentQueueSession != null) {
+        fetchDoctorQueue(date: date);
+      } else {
+        _stopPolling();
+      }
+    });
+  }
+
+  /// Doctor calls next patient
+  Future<bool> callNextPatient() async {
+    _isDoctorQueueLoading = true;
+    _doctorQueueError = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.callNextPatient();
+
+      if (response.isSuccess) {
+        // Refresh queue immediately
+        await fetchDoctorQueue();
+        return true;
+      } else {
+        _doctorQueueError = response.message;
+        return false;
+      }
+    } catch (e) {
+      _doctorQueueError = 'Failed to call next patient: ${e.toString()}';
+      return false;
+    } finally {
+      _isDoctorQueueLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Doctor marks consultation complete
+  Future<bool> markEntryComplete(int entryId) async {
+    _isDoctorQueueLoading = true;
+    _doctorQueueError = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.markEntryComplete(entryId);
+
+      if (response.isSuccess) {
+        await fetchDoctorQueue();
+        return true;
+      } else {
+        _doctorQueueError = response.message;
+        return false;
+      }
+    } catch (e) {
+      _doctorQueueError = 'Failed to mark complete: ${e.toString()}';
+      return false;
+    } finally {
+      _isDoctorQueueLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Doctor pauses the queue
+  Future<bool> pauseQueue(String reason) async {
+    _isDoctorQueueLoading = true;
+    _doctorQueueError = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.pauseQueue(reason);
+
+      if (response.isSuccess) {
+        await fetchDoctorQueue();
+        return true;
+      } else {
+        _doctorQueueError = response.message;
+        return false;
+      }
+    } catch (e) {
+      _doctorQueueError = 'Failed to pause queue: ${e.toString()}';
+      return false;
+    } finally {
+      _isDoctorQueueLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Doctor resumes the queue
+  Future<bool> resumeQueue() async {
+    _isDoctorQueueLoading = true;
+    _doctorQueueError = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.resumeQueue();
+
+      if (response.isSuccess) {
+        await fetchDoctorQueue();
+        return true;
+      } else {
+        _doctorQueueError = response.message;
+        return false;
+      }
+    } catch (e) {
+      _doctorQueueError = 'Failed to resume queue: ${e.toString()}';
+      return false;
+    } finally {
+      _isDoctorQueueLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Doctor closes the queue
+  Future<bool> closeQueue() async {
+    _isDoctorQueueLoading = true;
+    _doctorQueueError = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.closeQueue();
+
+      if (response.isSuccess) {
+        await fetchDoctorQueue();
+        return true;
+      } else {
+        _doctorQueueError = response.message;
+        return false;
+      }
+    } catch (e) {
+      _doctorQueueError = 'Failed to close queue: ${e.toString()}';
+      return false;
+    } finally {
+      _isDoctorQueueLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Clear all state
+  void clearState() {
+    _stopPolling();
+    _currentQueueEntry = null;
+    _waitTimeInfo = null;
+    _currentQueueSession = null;
     _errorMessage = null;
+    _doctorQueueError = null;
     notifyListeners();
   }
 }

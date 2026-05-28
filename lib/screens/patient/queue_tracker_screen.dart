@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/queue_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/appointment_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/custom_cards.dart';
 import '../../widgets/custom_components.dart';
+import '../../models/queue_model.dart';
 
 
 class QueueTrackerScreen extends StatefulWidget {
@@ -16,10 +18,46 @@ class QueueTrackerScreen extends StatefulWidget {
 
 class _QueueTrackerScreenState extends State<QueueTrackerScreen> {
   @override
-  Widget build(BuildContext context) {
-    final authService = context.read<AuthService>();
-    final user = authService.currentUser;
+  void initState() {
+    super.initState();
+    // Start fetching queue position
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final queueService = context.read<QueueService>();
+      final appointmentService = context.read<AppointmentService>();
+      
+      // If no date is already being polled, try to find the next appointment
+      if (queueService.currentPollingDate == null) {
+        // Fetch appointments first
+        appointmentService.fetchAppointments().then((_) {
+          // Get the next upcoming appointment date
+          final upcomingAppointments = appointmentService.upcomingAppointments;
+          if (upcomingAppointments.isNotEmpty) {
+            // Sort by date and get the earliest one
+            upcomingAppointments.sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
+            final nextAppointmentDateStr = upcomingAppointments.first.appointmentDate;
+            final nextAppointmentDate = DateTime.parse(nextAppointmentDateStr);
+            queueService.startPatientQueuePolling(date: nextAppointmentDate);
+          } else {
+            // No upcoming appointments, poll for today
+            queueService.startPatientQueuePolling();
+          }
+        });
+      } else {
+        // Already have a polling date (from appointment confirmation), just start polling
+        queueService.startPatientQueuePolling();
+      }
+    });
+  }
 
+  @override
+  void dispose() {
+    final queueService = context.read<QueueService>();
+    queueService.clearState();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
@@ -29,215 +67,346 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen> {
       ),
       body: Consumer<QueueService>(
         builder: (context, queueService, _) {
-          return FutureBuilder(
-            future: queueService.getPatientQueuePosition((user?.id ?? 0).toString()),
-            builder: (context, snapshot) {
-              if (queueService.isLoading) {
-                return const CustomLoadingIndicator(message: 'Loading queue info...');
-              }
+          if (queueService.isLoading && queueService.currentQueueEntry == null) {
+            return const CustomLoadingIndicator(message: 'Loading queue info...');
+          }
 
-              final queueEntry = snapshot.data;
-              if (queueEntry == null) {
-                return EmptyState(
-                  icon: Icons.line_weight,
-                  title: 'No Queue Entry',
-                  message: 'You are not currently in a queue. Book an appointment to join.',
-                  action: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/book-appointment');
-                    },
-                    child: const Text('Book Appointment'),
-                  ),
-                );
-              }
+          final queueEntry = queueService.currentQueueEntry;
 
-              final remainingWait = queueEntry.getRemainingWaitTime();
-              final positionsAhead = (queueEntry.queueNumber - 1).clamp(0, queueEntry.queueNumber);
+          if (queueEntry == null) {
+            return EmptyState(
+              icon: Icons.line_weight,
+              title: 'No Queue Entry',
+              message: 'You are not currently in a queue. Book an appointment to join.',
+              action: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/book-appointment');
+                },
+                child: const Text('Book Appointment'),
+              ),
+            );
+          }
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 24),
-                    // Queue Number Badge
-                    Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryBlue,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryBlue.withOpacity(0.3),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          '#${queueEntry.queueNumber}',
-                          style: const TextStyle(
-                            fontSize: 60,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    // Status
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: _getStatusColor(queueEntry.status).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: _getStatusColor(queueEntry.status).withOpacity(0.3),
-                        ),
-                      ),
-                      child: Text(
-                        queueEntry.status.name.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: _getStatusColor(queueEntry.status),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    // Info Cards
-                    _InfoCard(
-                      label: 'Doctor',
-                      value: queueEntry.doctorName,
-                      icon: Icons.local_hospital,
-                    ),
-                    const SizedBox(height: 12),
-                    _InfoCard(
-                      label: 'Estimated Wait Time',
-                      value: '$remainingWait minutes',
-                      icon: Icons.schedule,
-                      color: AppColors.warningOrange,
-                    ),
-                    const SizedBox(height: 12),
-                    _InfoCard(
-                      label: 'Positions Ahead',
-                      value: positionsAhead.toString(),
-                      icon: Icons.people,
-                      color: AppColors.primaryGreen,
-                    ),
-                    const SizedBox(height: 32),
-                    // Queue List
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Current Queue',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textDark,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Consumer<QueueService>(
-                      builder: (context, qService, _) {
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: qService.queueEntries.length,
-                          itemBuilder: (context, index) {
-                            final entry = qService.queueEntries[index];
-                            return QueueCard(
-                              queueNumber: entry.queueNumber,
-                              patientName: entry.patientName,
-                              doctorName: entry.doctorName,
-                              estimatedWait: entry.estimatedWaitTime,
-                              status: entry.status.name,
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                const SizedBox(height: 24),
+                // Queue Number Badge
+                _buildQueueNumberBadge(queueEntry.queueNumber),
+                const SizedBox(height: 32),
+                // Status
+                _buildStatusCard(queueEntry),
+                const SizedBox(height: 24),
+                // Queue Info Cards
+                _buildQueueInfoCards(queueEntry),
+                const SizedBox(height: 24),
+                // Wait Time Info
+                _buildWaitTimeCard(queueService.estimatedWaitMinutes ?? 0),
+                const SizedBox(height: 32),
+                // Action Buttons
+                _buildActionButtons(context, queueService),
+                const SizedBox(height: 24),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  Color _getStatusColor(dynamic status) {
-    final statusStr = status.toString().toLowerCase();
-    if (statusStr.contains('waiting')) return AppColors.warningOrange;
-    if (statusStr.contains('inprogress')) return AppColors.infoBlue;
-    if (statusStr.contains('completed')) return AppColors.successGreen;
-    return AppColors.textGray;
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color? color;
-
-  const _InfoCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cardColor = color ?? AppColors.primaryBlue;
+  Widget _buildQueueNumberBadge(int queueNumber) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: 150,
+      height: 150,
       decoration: BoxDecoration(
-        color: cardColor.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: cardColor.withOpacity(0.2),
+        color: AppColors.primaryBlue,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryBlue.withOpacity(0.3),
+            blurRadius: 20,
+            spreadRadius: 5,
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          '#$queueNumber',
+          style: const TextStyle(
+            fontSize: 60,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
         ),
       ),
-      child: Row(
+    );
+  }
+
+  Widget _buildStatusCard(QueueEntry entry) {
+    final statusColor = _getStatusColor(entry.status);
+    final statusLabel = _getStatusLabel(entry.status);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: statusColor.withOpacity(0.3)),
+      ),
+      child: Column(
         children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: cardColor.withOpacity(0.2),
-              shape: BoxShape.circle,
+          Text(
+            statusLabel,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: statusColor,
             ),
-            child: Icon(icon, color: cardColor, size: 24),
           ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textGray,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: cardColor,
-                ),
-              ),
-            ],
+          const SizedBox(height: 4),
+          Text(
+            entry.status == QueueEntryStatus.called
+                ? 'Please proceed to the consultation room'
+                : entry.status == QueueEntryStatus.completed
+                    ? 'Thank you for visiting'
+                    : 'Please wait for your turn',
+            style: TextStyle(
+              fontSize: 12,
+              color: statusColor.withOpacity(0.7),
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildQueueInfoCards(QueueEntry entry) {
+    return Column(
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Positions Ahead',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textGray,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${entry.positionsAhead}',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryBlue,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Joined At',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textGray,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatTime(entry.createdAt),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWaitTimeCard(int estimatedWait) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text(
+              'Estimated Wait Time',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textGray,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.schedule,
+                  color: AppColors.primaryBlue,
+                  size: 32,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '$estimatedWait min',
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryBlue,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              estimatedWait == 0
+                  ? 'You are being served now!'
+                  : 'Based on average consultation time',
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.textGray,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context, QueueService queueService) {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: queueService.isLoading
+                ? null
+                : () => _showLeaveConfirmation(context, queueService),
+            icon: const Icon(Icons.exit_to_app),
+            label: const Text('Leave Queue'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.emergencyRed,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              queueService.fetchPatientQueuePosition();
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text('Refresh'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showLeaveConfirmation(BuildContext context, QueueService queueService) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Leave Queue?'),
+          content: const Text(
+            'Are you sure you want to leave the queue? Your appointment will be cancelled.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                final success = await queueService.leaveQueue();
+                if (mounted) {
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('You have left the queue'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(queueService.errorMessage ?? 'Failed to leave queue'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Leave'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  Color _getStatusColor(QueueEntryStatus status) {
+    switch (status) {
+      case QueueEntryStatus.waiting:
+        return Colors.orange;
+      case QueueEntryStatus.called:
+        return Colors.blue;
+      case QueueEntryStatus.inConsult:
+        return Colors.blue;
+      case QueueEntryStatus.completed:
+        return Colors.green;
+      case QueueEntryStatus.left:
+        return Colors.grey;
+      case QueueEntryStatus.skipped:
+        return Colors.red;
+    }
+  }
+
+  String _getStatusLabel(QueueEntryStatus status) {
+    switch (status) {
+      case QueueEntryStatus.waiting:
+        return 'WAITING';
+      case QueueEntryStatus.called:
+        return 'CALLED';
+      case QueueEntryStatus.inConsult:
+        return 'IN CONSULTATION';
+      case QueueEntryStatus.completed:
+        return 'COMPLETED';
+      case QueueEntryStatus.left:
+        return 'LEFT';
+      case QueueEntryStatus.skipped:
+        return 'SKIPPED';
+    }
   }
 }

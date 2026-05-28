@@ -4,11 +4,14 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../services/appointment_service.dart';
 import '../../services/doctor_service.dart';
+import '../../services/queue_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/custom_components.dart';
 import '../../widgets/slot_grid.dart';
+import '../../widgets/appointment_card.dart';
 import '../../models/doctor_model.dart';
 import '../../models/time_slot_model.dart';
+import '../../models/queue_model.dart';
 
 class AppointmentDetailScreen extends StatefulWidget {
   const AppointmentDetailScreen({Key? key}) : super(key: key);
@@ -24,6 +27,11 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
   String? _errorMessage;
   List<TimeSlot> _availableSlots = [];
   bool _isFetchingSlots = false;
+  
+  // Queue info
+  QueueEntry? _queueEntry;
+  WaitTimeInfo? _waitTimeInfo;
+  bool _isLoadingQueueInfo = false;
 
   @override
   void didChangeDependencies() {
@@ -60,10 +68,44 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
         appointment = result;
         _isLoading = false;
       });
+      
+      // If appointment is confirmed, fetch queue info
+      if (result.status == 'confirmed') {
+        _fetchQueueInfo();
+      }
     } else {
       setState(() {
         _errorMessage = appointmentService.errorMessage ?? 'Failed to load appointment details';
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchQueueInfo() async {
+    if (appointment == null) return;
+    
+    if (!mounted) return;
+    setState(() {
+      _isLoadingQueueInfo = true;
+    });
+
+    try {
+      final queueService = context.read<QueueService>();
+      final appointmentDate = DateTime.parse(appointment!.appointmentDate);
+      
+      // Fetch the queue position for this appointment date
+      await queueService.fetchPatientQueuePosition(date: appointmentDate);
+      
+      if (!mounted) return;
+      setState(() {
+        _queueEntry = queueService.currentQueueEntry;
+        _waitTimeInfo = queueService.waitTimeInfo;
+        _isLoadingQueueInfo = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingQueueInfo = false;
       });
     }
   }
@@ -363,162 +405,50 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Appointment info card
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Doctor info
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.person,
-                                        color: AppColors.primaryBlue,
-                                        size: 28,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              appointment!.doctorDetail.fullName,
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                            Text(
-                                              'Dr. ${appointment!.doctorDetail.specialization}',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: AppColors.textGray,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  // Date and time
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      _buildInfoItem(Icons.calendar_today, 'Date',
-                                          DateFormat('MMM dd, yyyy').format(DateTime.parse(appointment!.appointmentDate))),
-                                      _buildInfoItem(Icons.access_time, 'Time',
-                                          appointment!.appointmentTime),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  // Status badge
-                                  Container(
+                          // Appointment Card (using AppointmentCard widget)
+                          AppointmentCard(
+                            appointment: appointment!,
+                            actions: [
+                              if (appointment!.canCancel)
+                                ElevatedButton.icon(
+                                  onPressed: _cancelAppointment,
+                                  icon: const Icon(Icons.cancel, size: 16),
+                                  label: const Text('Cancel'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.errorRed,
+                                    foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: _getStatusColor(appointment!.status)
-                                          .withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      appointment!.statusEnum.displayName,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: _getStatusColor(appointment!.status),
-                                      ),
+                                      horizontal: 12,
+                                      vertical: 6,
                                     ),
                                   ),
-                                  if (appointment!.reason.isNotEmpty) ...[
-                                    const SizedBox(height: 12),
-                                    const Text(
-                                      'Reason for Visit:',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                ),
+                              if (appointment!.canReschedule)
+                                OutlinedButton.icon(
+                                  onPressed: _rescheduleAppointment,
+                                  icon: const Icon(Icons.change_circle, size: 16),
+                                  label: const Text('Reschedule'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.primaryBlue,
+                                    side: const BorderSide(color: AppColors.primaryBlue),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      appointment!.reason,
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  ],
-                                  if (appointment!.notes.isNotEmpty) ...[
-                                    const SizedBox(height: 12),
-                                    const Text(
-                                      'Notes:',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      appointment!.notes,
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
+                                  ),
+                                ),
+                            ],
                           ),
                           const SizedBox(height: 24),
-                          // Action buttons
-                          if (appointment!.canCancel || appointment!.canReschedule)
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    onPressed: appointment!.canCancel
-                                        ? _cancelAppointment
-                                        : null,
-                                    icon: const Icon(Icons.cancel),
-                                    label: const Text('Cancel Appointment'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: appointment!.canCancel
-                                          ? AppColors.errorRed
-                                          : Colors.grey.shade300,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 12),
-                                    ),
-                                    
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: appointment!.canReschedule
-                                        ? _rescheduleAppointment
-                                        : null,
-                                    icon: const Icon(Icons.change_circle),
-                                    label: const Text('Reschedule'),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: appointment!.canReschedule
-                                          ? AppColors.primaryBlue
-                                          : AppColors.textGray,
-                                      side: BorderSide(
-                                        color: appointment!.canReschedule
-                                            ? AppColors.primaryBlue
-                                            : AppColors.borderColor,
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 12),
-                                    ),
-                                   
-                                  ),
-                                ),
-                              ],
-                            )
-                          else
+                          
+                          // Queue Information Section (if appointment is confirmed)
+                          if (appointment!.status == 'confirmed')
+                            _buildQueueInfoSection(),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Message if appointment cannot be cancelled or rescheduled
+                          if (!(appointment!.canCancel || appointment!.canReschedule))
                             const Center(
                               child: Text(
                                 'This appointment cannot be cancelled or rescheduled',
@@ -578,6 +508,195 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
         return AppColors.infoBlue;
       default:
         return AppColors.textGray;
+    }
+  }
+
+  Widget _buildQueueInfoSection() {
+    if (_isLoadingQueueInfo) {
+      return const Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: SizedBox(
+            height: 100,
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_queueEntry == null) {
+      return const Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            'Queue information not available',
+            style: TextStyle(
+              color: AppColors.textGray,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Queue Title
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12),
+          child: Text(
+            'Queue Status',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textDark,
+            ),
+          ),
+        ),
+        
+        // Queue Card
+        Card(
+          elevation: 2,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Queue Number Badge
+                Center(
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryBlue.withOpacity(0.3),
+                          blurRadius: 15,
+                          spreadRadius: 3,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        '#${_queueEntry!.queueNumber}',
+                        style: const TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Status Row
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: AppColors.textGray,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Status: ${_getQueueStatusLabel(_queueEntry!.status)}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Positions Ahead Row
+                if (_waitTimeInfo != null) ...[
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.people_outline,
+                        size: 18,
+                        color: AppColors.textGray,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Positions ahead: ${_waitTimeInfo!.positionsAhead}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Estimated Wait Time Row
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.schedule_outlined,
+                        size: 18,
+                        color: AppColors.textGray,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Est. wait: ${_waitTimeInfo!.estimatedWaitMinutes} min',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getQueueStatusLabel(QueueEntryStatus status) {
+    switch (status) {
+      case QueueEntryStatus.waiting:
+        return 'Waiting';
+      case QueueEntryStatus.called:
+        return 'Called';
+      case QueueEntryStatus.inConsult:
+        return 'In Consultation';
+      case QueueEntryStatus.completed:
+        return 'Completed';
+      case QueueEntryStatus.skipped:
+        return 'Skipped';
+      case QueueEntryStatus.left:
+        return 'Left';
     }
   }
 }

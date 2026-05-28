@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:medqueue_frontend/screens/patient/patient_home_screen.dart';
 import 'package:provider/provider.dart';
 import '../../services/appointment_service.dart';
+import '../../services/queue_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/custom_components.dart';
 
@@ -48,7 +49,14 @@ class _AppointmentBookingConfirmScreenState
     });
 
     if (result != null) {
-      // Success
+      // Success - start queue polling and navigate to queue tracker
+      final queueService = context.read<QueueService>();
+      final bookedDate = args['date'] as DateTime?;
+      
+      // Start polling for patient's queue position
+      queueService.startPatientQueuePolling(date: bookedDate);
+      
+      // Show success dialog
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -61,10 +69,10 @@ class _AppointmentBookingConfirmScreenState
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // Close dialog
-                // navigate to home screen at index 2
-                Navigator.push(context, MaterialPageRoute(builder: (context) => PatientHomeScreen(selectedIndex: 1)));
+                // Navigate to queue tracker screen
+                Navigator.pushReplacementNamed(context, '/queue-tracker');
               },
-              child: const Text('View Appointment'),
+              child: const Text('View Queue'),
             ),
           ],
         ),

@@ -189,103 +189,32 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   Widget _buildQueue() {
-    return Consumer<QueueService>(
-      builder: (context, queueService, _) {
-        return FutureBuilder(
-          future: queueService.getQueueForDoctor('1'),
-          builder: (context, snapshot) {
-            if (queueService.isLoading) {
-              return const CustomLoadingIndicator(message: 'Loading queue...');
-            }
-
-            final queueEntries = snapshot.data ?? [];
-            if (queueEntries.isEmpty) {
-              return EmptyState(
-                icon: Icons.line_weight,
-                title: 'No Patients in Queue',
-                message: 'Queue will appear here',
-              );
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: queueEntries.length,
-              itemBuilder: (context, index) {
-                final entry = queueEntries[index];
-                return Card(
-                  elevation: 2,
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryBlue,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '#${entry.queueNumber}',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  entry.patientName,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textDark,
-                                  ),
-                                ),
-                                Text(
-                                  entry.status.name,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textGray,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        CustomButton(
-                          label: 'Mark as Completed',
-                          onPressed: () async {
-                            await queueService.completePatient(entry.id);
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Patient marked as completed')),
-                              );
-                            }
-                          },
-                          width: double.infinity,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.line_weight, size: 80, color: AppColors.textLight),
+          const SizedBox(height: 16),
+          const Text(
+            'Queue Management',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 32),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: CustomButton(
+              label: 'Open Queue Dashboard',
+              onPressed: () {
+                Navigator.pushNamed(context, '/doctor/queue-dashboard');
               },
-            );
-          },
-        );
-      },
+            ),
+          ),
+        ],
+      ),
     );
   }
 

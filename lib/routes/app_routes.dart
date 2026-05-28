@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medqueue_frontend/screens/patient/appointment_detail_screen.dart';
+import 'package:medqueue_frontend/screens/doctor/queue_dashboard_screen.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/onboarding_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -35,15 +36,16 @@ class AppRoutes {
   static const String emergencySos = '/emergency-sos';
   static const String patientNotifications = '/patient-notifications';
   
-    // Appointment Routes (Patient - Phase 1)
-    static const String doctorsBrowse = '/patient/doctors';
-    static const String doctorDetail = '/patient/doctor-detail';
-    static const String appointmentBookingConfirm = '/patient/appointment-booking-confirm';
-    static const String appointmentsHistory = '/patient/appointments-history';
-    static const String appointmentDetail = '/patient/appointment-detail';
+  // Appointment Routes (Patient - Phase 1)
+  static const String doctorsBrowse = '/patient/doctors';
+  static const String doctorDetail = '/patient/doctor-detail';
+  static const String appointmentBookingConfirm = '/patient/appointment-booking-confirm';
+  static const String appointmentsHistory = '/patient/appointments-history';
+  static const String appointmentDetail = '/patient/appointment-detail';
   
   // Doctor Routes
   static const String doctorHome = '/doctor-home';
+  static const String doctorQueueDashboard = '/doctor/queue-dashboard';
   
   // Admin Routes
   static const String adminHome = '/admin-home';
@@ -72,14 +74,18 @@ class AppRoutes {
       emergencySos: (context) => const EmergencySosScreen(),
       patientNotifications: (context) => const NotificationsScreen(),
       
-       // Appointment routes (Patient - Phase 1)
-       doctorsBrowse: (context) => const DoctorsBrowseScreen(),
-       doctorDetail: (context) => const DoctorDetailScreen(),
-       appointmentBookingConfirm: (context) => const AppointmentBookingConfirmScreen(),
-       appointmentsHistory: (context) => const AppointmentHistoryScreen(),
-       appointmentDetail: (context) => const AppointmentDetailScreen(),
+      // Appointment routes (Patient - Phase 1)
+      doctorsBrowse: (context) => const DoctorsBrowseScreen(),
+      doctorDetail: (context) => const DoctorDetailScreen(),
+      appointmentBookingConfirm: (context) => const AppointmentBookingConfirmScreen(),
+      appointmentsHistory: (context) => const AppointmentHistoryScreen(),
+      appointmentDetail: (context) => const AppointmentDetailScreen(),
       
+      // Doctor routes
       doctorHome: (context) => const DoctorHomeScreen(),
+      doctorQueueDashboard: (context) => const DoctorQueueDashboardScreen(),
+      
+      // Admin routes
       adminHome: (context) => const AdminHomeScreen(),
     };
   }
