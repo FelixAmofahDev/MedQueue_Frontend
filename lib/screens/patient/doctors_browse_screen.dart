@@ -17,13 +17,16 @@ class _DoctorsBrowseScreenState extends State<DoctorsBrowseScreen> {
   final _searchController = TextEditingController();
   String _selectedSpecialization = '';
   List<String> specializations = [];
+  bool _specializationsExtracted = false;
 
   @override
   void initState() {
     super.initState();
     // Fetch doctors on screen load
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchDoctors();
+      if (mounted) {
+        _fetchDoctors();
+      }
     });
   }
 
@@ -61,9 +64,14 @@ class _DoctorsBrowseScreenState extends State<DoctorsBrowseScreen> {
       ),
       body: Consumer<DoctorService>(
         builder: (context, doctorService, _) {
-          // Extract specializations from available doctors
-          if (specializations.isEmpty && doctorService.doctors.isNotEmpty) {
-            _extractSpecializations(doctorService.doctors);
+          // Extract specializations from available doctors (only once)
+          if (!_specializationsExtracted && doctorService.doctors.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _extractSpecializations(doctorService.doctors);
+              }
+            });
+            _specializationsExtracted = true;
           }
 
           if (doctorService.isLoading && doctorService.doctors.isEmpty) {

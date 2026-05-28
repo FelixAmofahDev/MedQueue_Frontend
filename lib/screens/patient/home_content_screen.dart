@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 import '../../services/auth_service.dart';
 import '../../services/appointment_service.dart';
+import '../../services/queue_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/appointment_card.dart';
 
 class HomeContentScreen extends StatelessWidget {
   final VoidCallback? onViewAll;
 
-  const HomeContentScreen({
-    super.key,
-    this.onViewAll,
-  });
+  const HomeContentScreen({super.key, this.onViewAll});
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +86,9 @@ class HomeContentScreen extends StatelessWidget {
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(20),
@@ -95,8 +96,11 @@ class HomeContentScreen extends StatelessWidget {
                                 child: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.circle,
-                                        color: Color(0xFF90EE90), size: 8),
+                                    Icon(
+                                      Icons.circle,
+                                      color: Color(0xFF90EE90),
+                                      size: 8,
+                                    ),
                                     SizedBox(width: 4),
                                     Text(
                                       'Online',
@@ -132,18 +136,66 @@ class HomeContentScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 20),
                           // Health stats row
-                          Row(
-                            children: [
-                              _StatChip(
-                                  icon: Icons.calendar_today_rounded,
-                                  label: 'Next Appt',
-                                  value: 'Today'),
-                              const SizedBox(width: 10),
-                              _StatChip(
-                                  icon: Icons.queue_rounded,
-                                  label: 'Queue',
-                                  value: '#4'),
-                            ],
+                          Consumer2<AppointmentService, QueueService>(
+                            builder:
+                                (context, appointmentService, queueService, _) {
+                                  // Get next appointment
+                                  final upcomingAppointments =
+                                      appointmentService.upcomingAppointments;
+                                  String nextApptText = 'No appt';
+                                  if (upcomingAppointments.isNotEmpty) {
+                                    final nextAppt = upcomingAppointments.first;
+                                    final apptDate = DateTime.parse(
+                                      nextAppt.appointmentDate,
+                                    );
+                                    final today = DateTime.now();
+                                    final tomorrow = DateTime(
+                                      today.year,
+                                      today.month,
+                                      today.day + 1,
+                                    );
+
+                                    if (apptDate.year == today.year &&
+                                        apptDate.month == today.month &&
+                                        apptDate.day == today.day) {
+                                      nextApptText = 'Today';
+                                    } else if (apptDate.year == tomorrow.year &&
+                                        apptDate.month == tomorrow.month &&
+                                        apptDate.day == tomorrow.day) {
+                                      nextApptText = 'Tomorrow';
+                                    } else {
+                                      nextApptText = DateFormat(
+                                        'MMM d',
+                                      ).format(apptDate);
+                                    }
+                                  }
+
+                                  // Get queue number
+                                  final queueNumber =
+                                      queueService
+                                          .currentQueueEntry
+                                          ?.queueNumber ??
+                                      0;
+                                  String queueText = queueNumber > 0
+                                      ? '#$queueNumber'
+                                      : 'Not in queue';
+
+                                  return Row(
+                                    children: [
+                                      _StatChip(
+                                        icon: Icons.calendar_today_rounded,
+                                        label: 'Next Appt',
+                                        value: nextApptText,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      _StatChip(
+                                        icon: Icons.queue_rounded,
+                                        label: 'Queue',
+                                        value: queueText,
+                                      ),
+                                    ],
+                                  );
+                                },
                           ),
                         ],
                       ),
@@ -177,7 +229,9 @@ class HomeContentScreen extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1.45,
+                childAspectRatio:
+                    1.25, // ← was 1.45, now taller for better breathing room
+
                 children: [
                   _ModernQuickAction(
                     icon: Icons.calendar_month_rounded,
@@ -248,8 +302,10 @@ class HomeContentScreen extends StatelessWidget {
             const SizedBox(height: 12),
             Consumer<AppointmentService>(
               builder: (context, appointmentService, _) {
-                final appointments = appointmentService.appointments.take(3).toList();
-                
+                final appointments = appointmentService.appointments
+                    .take(3)
+                    .toList();
+
                 if (appointments.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -277,14 +333,15 @@ class HomeContentScreen extends StatelessWidget {
                     ),
                   );
                 }
-                
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: appointments.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       return AppointmentCard(
                         appointment: appointments[index],
@@ -315,6 +372,16 @@ class _ModernQuickAction extends StatelessWidget {
   final Color bgColor;
   final VoidCallback onTap;
 
+  // Each card gets a unique subtitle hint
+  String get _subtitle {
+    if (label.contains('Book')) return 'Find a doctor';
+    if (label.contains('Queue')) return 'Live updates';
+    if (label.contains('AI') || label.contains('Assistant'))
+      return 'Ask anything';
+    if (label.contains('Emergency')) return 'Tap to call';
+    return '';
+  }
+
   const _ModernQuickAction({
     required this.icon,
     required this.label,
@@ -325,42 +392,127 @@ class _ModernQuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isEmergency = label.contains('Emergency');
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.15)),
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            colors: isEmergency
+                ? [AppColors.emergencyRed, AppColors.emergencyLight]
+                : [color.withOpacity(0.92), color.withOpacity(0.7)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.1),
-              blurRadius: 12,
-              spreadRadius: -2,
-              offset: const Offset(0, 4),
+              color: color.withOpacity(isEmergency ? 0.45 : 0.3),
+              blurRadius: 16,
+              spreadRadius: -3,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Stack(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
+            // ── Large decorative circle top-right ──────────
+            Positioned(
+              right: -14,
+              top: -14,
+              child: Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.12),
+                ),
               ),
-              child: Icon(icon, color: color, size: 22),
             ),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: color,
-                height: 1.3,
+            // ── Small decorative circle bottom-left ────────
+            Positioned(
+              left: -8,
+              bottom: -12,
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.08),
+                ),
+              ),
+            ),
+
+            // ── Content ────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Icon container
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.22),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.35),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 22),
+                  ),
+
+                  // Label + subtitle
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.2,
+                          height: 1.2,
+                        ),
+                      ),
+                      if (_subtitle.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          _subtitle,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Arrow chip top-right ───────────────────────
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_rounded,
+                  color: Colors.white,
+                  size: 12,
+                ),
               ),
             ),
           ],
