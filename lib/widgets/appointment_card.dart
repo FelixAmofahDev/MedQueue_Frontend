@@ -7,12 +7,14 @@ class AppointmentCard extends StatelessWidget {
   final Appointment appointment;
   final VoidCallback? onTap;
   final List<Widget>? actions;
+  final bool showPatientName;
 
   const AppointmentCard( {
     super.key,
     required this.appointment,
     this.onTap,
     this.actions,
+    this.showPatientName = false,
   });
 
   _StatusStyle get _statusStyle {
@@ -158,13 +160,15 @@ class AppointmentCard extends StatelessWidget {
 
                       const SizedBox(width: 12),
 
-                      // Doctor name & specialization
+                      // Doctor/Patient name & specialization/phone
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Dr. ${appointment.doctorDetail.fullName}',
+                              showPatientName
+                                  ? appointment.patientDetail.fullName
+                                  : 'Dr. ${appointment.doctorDetail.fullName}',
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w800,
@@ -184,7 +188,9 @@ class AppointmentCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                appointment.doctorDetail.specialization,
+                                showPatientName
+                                    ? appointment.patientDetail.phone
+                                    : appointment.doctorDetail.specialization,
                                 style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,

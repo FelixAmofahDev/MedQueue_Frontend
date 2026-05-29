@@ -144,6 +144,17 @@ class QueueApiService {
     );
   }
 
+  /// Get full appointment details by ID
+  /// GET /auth/{appointment_id}/
+  Future<ApiResponse<Appointment>> getAppointmentDetail(int appointmentId) async {
+    return ApiClient.getWithAuth(
+      '/auth/$appointmentId/',
+      parser: (json) {
+        return Appointment.fromJson(json as Map<String, dynamic>);
+      },
+    );
+  }
+
   // ============================================================================
   // HELPERS
   // ============================================================================

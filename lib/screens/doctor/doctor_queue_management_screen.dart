@@ -842,8 +842,6 @@ class _DoctorQueueManagementScreenState
       (e) => e.status == QueueEntryStatus.called,
       orElse: () => QueueEntry(
         id: 0,
-        sessionId: session.id,
-        patientId: 0,
         patientName: '',
         queueNumber: 0,
         status: QueueEntryStatus.waiting,

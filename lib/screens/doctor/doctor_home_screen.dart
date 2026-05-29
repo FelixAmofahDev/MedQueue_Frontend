@@ -782,17 +782,58 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
           );
         }
 
-        return Column(
-          children: appointments.take(3).map((appointment) {
-            return _buildAppointmentCard(appointment);
-          }).toList(),
+        // Fetch full details for appointments in parallel
+        final appointmentIds = appointments.take(3).map((a) => a.id).toList();
+        return FutureBuilder<List<Appointment?>>(
+          future: Future.wait(
+            appointmentIds.map((id) => _fetchAppointmentDetailQuietly(id)).toList(),
+          ),
+          builder: (context, detailSnapshot) {
+            List<Appointment> detailedAppointments = [];
+            
+            if (detailSnapshot.hasData) {
+              detailedAppointments = detailSnapshot.data!
+                  .whereType<Appointment>()
+                  .toList();
+            }
+
+            // If no detailed data yet, show lightweight appointments while loading
+            if (detailedAppointments.isEmpty && detailSnapshot.connectionState == ConnectionState.waiting) {
+              detailedAppointments = appointments.take(3).toList();
+            }
+
+            if (detailedAppointments.isEmpty) {
+              return const SizedBox.shrink();
+            }
+
+            return Column(
+              children: detailedAppointments.map((appointment) {
+                return _buildAppointmentCard(appointment);
+              }).toList(),
+            );
+          },
         );
       },
     );
   }
 
+  /// Fetch full appointment details without showing loading state
+  /// Used internally to fetch appointment details in parallel
+  Future<Appointment?> _fetchAppointmentDetailQuietly(int appointmentId) async {
+    try {
+      final response = await _queueApiService.getAppointmentDetail(appointmentId);
+      if (response.isSuccess && response.data != null) {
+        return response.data;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching appointment detail for ID $appointmentId: $e');
+      return null;
+    }
+  }
+
   Widget _buildAppointmentCard(Appointment appointment) {
-    return AppointmentCard(appointment: appointment);
+    return AppointmentCard(appointment: appointment, showPatientName: true);
   }
 }
 

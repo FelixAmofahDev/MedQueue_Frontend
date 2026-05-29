@@ -370,7 +370,7 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
 
   Widget _buildAppointmentCard(Appointment appointment) {
 
-    return AppointmentCard(appointment: appointment);
+    return AppointmentCard(appointment: appointment, showPatientName: true);
   }
 
   String _formatDateHeader(String dateStr) {

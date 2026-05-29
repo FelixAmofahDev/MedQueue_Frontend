@@ -126,8 +126,7 @@ class QueueSession {
 // Queue Entry Model (patient's place in queue)
 class QueueEntry {
   final int id;
-  final int sessionId;
-  final int patientId;
+
   final String patientName;
   final int? appointmentId;
   final int queueNumber;
@@ -142,8 +141,7 @@ class QueueEntry {
 
   QueueEntry({
     required this.id,
-    required this.sessionId,
-    required this.patientId,
+    
     required this.patientName,
     this.appointmentId,
     required this.queueNumber,
@@ -160,8 +158,7 @@ class QueueEntry {
   factory QueueEntry.fromJson(Map<String, dynamic> json) {
     return QueueEntry(
       id: json['id'] ?? 0,
-      sessionId: json['session'] ?? json['session_id'] ?? 0,
-      patientId: json['patient'] ?? json['patient_id'] ?? 0,
+     
       patientName: json['patient_name'] ?? '',
       appointmentId: json['appointment'] ?? json['appointment_id'],
       queueNumber: json['queue_number'] ?? 0,
@@ -182,8 +179,7 @@ class QueueEntry {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'session_id': sessionId,
-        'patient_id': patientId,
+        
         'patient_name': patientName,
         'appointment_id': appointmentId,
         'queue_number': queueNumber,
