@@ -351,7 +351,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 onPressed: () async {
                   await authService.logout();
                   if (mounted) {
-                    // Clear all routes and return to StartupWrapper home (which shows LoginScreen)
+                    // Clear all routes to ensure LoginScreen shows
                     while (Navigator.of(context).canPop()) {
                       Navigator.of(context).pop();
                     }

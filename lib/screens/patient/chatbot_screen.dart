@@ -39,9 +39,19 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text('AI Health Assistant'),
-        centerTitle: true,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primaryBlue, AppColors.primaryGreen],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
@@ -53,6 +63,19 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             },
           ),
         ],
+        title: Column(
+          children: [
+            const Text(
+              'AI Health Assistant',
+              style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3),
+            ),
+           
+          ],
+        ),
+       
       ),
       body: Column(
         children: [

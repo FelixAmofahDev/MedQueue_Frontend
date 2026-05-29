@@ -413,9 +413,10 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
         cancelButtonText: 'Cancel',
         confirmButtonColor: AppColors.emergencyRed,
         onConfirm: () async {
+          // First logout to clear auth state
           await authService.logout();
-
           if (mounted) {
+            // Then clear all navigation routes to ensure LoginScreen shows
             while (Navigator.of(context).canPop()) {
               Navigator.of(context).pop();
             }

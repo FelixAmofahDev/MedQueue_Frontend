@@ -37,15 +37,32 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(
-    onPressed: () {
-Navigator.push(context, MaterialPageRoute(builder: (context) => PatientHomeScreen()));
-              },    
-  ),
-        title: const Text('My Appointments'),
-        centerTitle: true,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primaryBlue, AppColors.primaryGreen],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        title: Column(
+          children: [
+            const Text(
+              'My Appointments',
+              style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3),
+            ),
+           
+          ],
+        ),
+       
       ),
       body: Consumer<AppointmentService>(
         builder: (context, appointmentService, _) {
