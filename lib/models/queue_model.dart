@@ -56,7 +56,7 @@ class QueueSession {
       totalPauseMinutes: json['total_pause_minutes'] ?? 0,
       waitingCount: json['waiting_count'] ?? 0,
       servedCount: json['served_count'] ?? 0,
-      isPaused: json['is_paused'] ?? false,
+      isPaused: json['status']! == 'paused',
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toString()),
       updatedAt: DateTime.parse(json['updated_at'] ?? DateTime.now().toString()),
       entries: (json['entries'] as List?)
@@ -83,6 +83,44 @@ class QueueSession {
         'updated_at': updatedAt.toIso8601String(),
         'entries': entries?.map((e) => e.toJson()).toList(),
       };
+
+  QueueSession copyWith({
+    int? id,
+    int? doctorId,
+    String? doctorName,
+    DateTime? date,
+    QueueSessionStatus? status,
+    int? currentPosition,
+    int? nextNumber,
+    String? pauseReason,
+    DateTime? pausedAt,
+    int? totalPauseMinutes,
+    int? waitingCount,
+    int? servedCount,
+    bool? isPaused,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    List<QueueEntry>? entries,
+  }) {
+    return QueueSession(
+      id: id ?? this.id,
+      doctorId: doctorId ?? this.doctorId,
+      doctorName: doctorName ?? this.doctorName,
+      date: date ?? this.date,
+      status: status ?? this.status,
+      currentPosition: currentPosition ?? this.currentPosition,
+      nextNumber: nextNumber ?? this.nextNumber,
+      pauseReason: pauseReason ?? this.pauseReason,
+      pausedAt: pausedAt ?? this.pausedAt,
+      totalPauseMinutes: totalPauseMinutes ?? this.totalPauseMinutes,
+      waitingCount: waitingCount ?? this.waitingCount,
+      servedCount: servedCount ?? this.servedCount,
+      isPaused: isPaused ?? this.isPaused,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      entries: entries ?? this.entries,
+    );
+  }
 }
 
 // Queue Entry Model (patient's place in queue)

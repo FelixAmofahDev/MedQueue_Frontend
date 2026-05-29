@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/queue_service.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/custom_cards.dart';
 import '../../widgets/custom_components.dart';
 import '../../models/queue_model.dart';
 
@@ -16,20 +15,41 @@ class DoctorQueueDashboardScreen extends StatefulWidget {
 
 class _DoctorQueueDashboardScreenState extends State<DoctorQueueDashboardScreen> {
   TextEditingController _pauseReasonController = TextEditingController();
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final queueService = context.read<QueueService>();
-      queueService.startDoctorQueuePolling();
+      queueService.startDoctorQueuePolling(date: _selectedDate);
     });
   }
 
   @override
   void dispose() {
     _pauseReasonController.dispose();
+    final queueService = context.read<QueueService>();
+    queueService.stopPolling();
     super.dispose();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+      // Restart polling with the new date
+      final queueService = context.read<QueueService>();
+      queueService.stopPolling();
+      queueService.startDoctorQueuePolling(date: _selectedDate);
+    }
   }
 
   @override
@@ -52,12 +72,12 @@ class _DoctorQueueDashboardScreenState extends State<DoctorQueueDashboardScreen>
           if (session == null) {
             return EmptyState(
               icon: Icons.event_busy,
-              title: 'No Queue Today',
+              title: 'No Queue for Selected Date',
               message:
-                  'There are no queue sessions for today. Your first appointment will create the queue.',
+                  'There are no queue sessions for the selected date. Create an appointment to start the queue.',
               action: ElevatedButton(
                 onPressed: () {
-                  queueService.fetchDoctorQueue();
+                  queueService.fetchDoctorQueue(date: _selectedDate);
                 },
                 child: const Text('Refresh'),
               ),
@@ -68,6 +88,9 @@ class _DoctorQueueDashboardScreenState extends State<DoctorQueueDashboardScreen>
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
+                // Date Selector
+                _buildDateSelector(context, queueService),
+                const SizedBox(height: 24),
                 // Session Status Header
                 _buildSessionStatusHeader(session, queueService),
                 const SizedBox(height: 24),
@@ -85,6 +108,40 @@ class _DoctorQueueDashboardScreenState extends State<DoctorQueueDashboardScreen>
           );
         },
       ),
+    );
+  }
+
+  Widget _buildDateSelector(BuildContext context, QueueService queueService) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Select Date:',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textDark,
+          ),
+        ),
+        Row(
+          children: [
+            Text(
+              _formatDate(_selectedDate),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryBlue,
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              onPressed: () => _selectDate(context),
+              icon: const Icon(Icons.calendar_today),
+              color: AppColors.primaryBlue,
+            ),
+          ],
+        ),
+      ],
     );
   }
 

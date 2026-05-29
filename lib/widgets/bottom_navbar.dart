@@ -6,11 +6,13 @@ import 'package:medqueue_frontend/utils/app_colors.dart';
 class ModernBottomNavBar extends StatefulWidget {
   final int selectedIndex;
   final Function(int) onTap;
+  final List<NavItem>? items;
 
   const ModernBottomNavBar({
     super.key,
     required this.selectedIndex,
     required this.onTap,
+    this.items,
   });
 
   @override
@@ -22,16 +24,19 @@ class _ModernBottomNavBarState extends State<ModernBottomNavBar>
   late List<AnimationController> _controllers;
   late List<Animation<double>> _scaleAnimations;
 
-  final List<_NavItem> _items = const [
-    _NavItem(icon: Icons.home_rounded, label: 'Home'),
-    _NavItem(icon: Icons.calendar_month_rounded, label: 'Bookings'),
-    _NavItem(icon: Icons.chat_bubble_rounded, label: 'Chat'),
-    _NavItem(icon: Icons.person_rounded, label: 'Profile'),
-  ];
+  late final List<NavItem> _items;
 
+  @override
   @override
   void initState() {
     super.initState();
+    _items = widget.items ?? const [
+      NavItem(icon: Icons.home_rounded, label: 'Home'),
+      NavItem(icon: Icons.calendar_month_rounded, label: 'Bookings'),
+      NavItem(icon: Icons.chat_bubble_rounded, label: 'Chat'),
+      NavItem(icon: Icons.person_rounded, label: 'Profile'),
+    ];
+    
     _controllers = List.generate(
       _items.length,
       (i) => AnimationController(
@@ -175,8 +180,11 @@ class _ModernBottomNavBarState extends State<ModernBottomNavBar>
   }
 }
 
-class _NavItem {
+class NavItem {
   final IconData icon;
   final String label;
-  const _NavItem({required this.icon, required this.label});
+  const NavItem({required this.icon, required this.label});
 }
+
+// For backward compatibility
+typedef _NavItem = NavItem;

@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:medqueue_frontend/models/api_response_model.dart';
+import 'package:medqueue_frontend/models/appointment_model.dart';
+import 'package:medqueue_frontend/models/queue_model.dart';
+import 'package:medqueue_frontend/widgets/appointment_card.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
-import '../../services/queue_service.dart';
+import '../../services/queue_api_service.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/custom_button.dart';
-
 import '../../widgets/custom_components.dart';
+import '../../widgets/bottom_navbar.dart';
+import 'doctor_queue_management_screen.dart';
+import 'doctor_profile_screen.dart';
+import 'doctor_appointments_screen.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
   const DoctorHomeScreen({super.key});
@@ -17,29 +24,37 @@ class DoctorHomeScreen extends StatefulWidget {
 
 class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   int _selectedIndex = 0;
+  late QueueApiService _queueApiService;
+
+  @override
+  void initState() {
+    super.initState();
+    _queueApiService = QueueApiService();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text('Doctor Dashboard'),
+        title: const Text('MedQueue Doctor'),
         centerTitle: true,
         elevation: 0,
+        backgroundColor: AppColors.primaryBlue,
+        foregroundColor: Colors.white,
       ),
       body: _getBody(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
+      bottomNavigationBar: ModernBottomNavBar(
+        selectedIndex: _selectedIndex,
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
           });
         },
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedule'),
-          BottomNavigationBarItem(icon: Icon(Icons.line_weight), label: 'Queue'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          NavItem(icon: Icons.home_rounded, label: 'Home'),
+          NavItem(icon: Icons.queue_rounded, label: 'Queue'),
+          NavItem(icon: Icons.person_rounded, label: 'Profile'),
         ],
       ),
     );
@@ -50,11 +65,9 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       case 0:
         return _buildHome();
       case 1:
-        return _buildSchedule();
+        return const DoctorQueueManagementScreen();
       case 2:
-        return _buildQueue();
-      case 3:
-        return _buildProfile();
+        return const DoctorProfileScreen();
       default:
         return _buildHome();
     }
@@ -64,265 +77,827 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     return Consumer<AuthService>(
       builder: (context, authService, _) {
         final doctor = authService.currentUser;
+        
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.primaryBlue, AppColors.primaryBlue.withOpacity(0.7)],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
+              // Welcome Banner
+              _buildWelcomeBanner(doctor),
+              const SizedBox(height: 24),
+              
+              // Queue Status Card
+              _buildQueueStatusCard(),
+              const SizedBox(height: 24),
+              
+              // Upcoming Appointments Section
+              const Text(
+                'This Week\'s Upcoming Appointments',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildUpcomingAppointments(),              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DoctorAppointmentsScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text('View All Appointments'),
+                ),
+              ),            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildWelcomeBanner(dynamic doctor) {
+    return FutureBuilder<ApiResponse<DoctorWeeklyScheduleResponse>>(
+      future: _queueApiService.getDoctorWeeklySchedule(),
+      builder: (context, snapshot) {
+        // Count today's appointments
+        int todayAppointmentCount = 0;
+        if (snapshot.hasData && snapshot.data?.isSuccess == true) {
+          final appointments = snapshot.data?.data?.appointments ?? [];
+          final today = DateTime.now();
+          todayAppointmentCount = appointments.where((appt) {
+            try {
+              final apptDate = DateTime.parse(appt.appointmentDate);
+              return apptDate.day == today.day &&
+                  apptDate.month == today.month &&
+                  apptDate.year == today.year;
+            } catch (e) {
+              return false;
+            }
+          }).length;
+        }
+
+        return FutureBuilder<ApiResponse<QueueSession>>(
+          future: _queueApiService.getDoctorQueue(),
+          builder: (context, queueSnapshot) {
+            // Count people in queue
+            int queueCount = 0;
+            if (queueSnapshot.hasData && queueSnapshot.data?.isSuccess == true) {
+              final session = queueSnapshot.data?.data;
+              queueCount = session?.waitingCount ?? 0;
+            }
+
+            return Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primaryBlue, AppColors.primaryGreen],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withOpacity(0.35),
+                    blurRadius: 24,
+                    spreadRadius: -4,
+                    offset: const Offset(0, 10),
                   ),
-                  child: Column(
+                ],
+              ),
+              child: Stack(
+                children: [
+                  // Decorative circles
+                  Positioned(
+                    right: -20,
+                    top: -20,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.08),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 20,
+                    bottom: -30,
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.06),
+                      ),
+                    ),
+                  ),
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.circle,
+                                  color: Color(0xFF90EE90),
+                                  size: 8,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Online',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                       Text(
-                        'Welcome, Dr. ${doctor?.fullName ?? "Doctor"}',
+                        'Welcome back, Dr. ${doctor?.fullName?.split(' ').last ?? "Doctor"}',
                         style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
                           color: Colors.white,
+                          letterSpacing: -0.5,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
-                        doctor?.doctorProfile?.specialization ?? 'Specialist',
+                        '${doctor?.doctorProfile?.specialization ?? "Specialist"} • ${DateFormat('EEEE').format(DateTime.now())}',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white70,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Stats row with dynamic values
+                      Row(
+                        children: [
+                          _StatChip(
+                            icon: Icons.people_rounded,
+                            label: 'Appointments',
+                            value: '$todayAppointmentCount',
+                          ),
+                          const SizedBox(width: 10),
+                          _StatChip(
+                            icon: Icons.queue_rounded,
+                            label: 'In Queue',
+                            value: '$queueCount',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildQueueStatusCard() {
+  return FutureBuilder<ApiResponse<QueueSession>>(
+    future: _queueApiService.getDoctorQueue(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const CustomLoadingIndicator(message: 'Loading queue status...');
+      }
+
+      QueueSession? session;
+      if (snapshot.hasData && snapshot.data?.isSuccess == true) {
+        session = snapshot.data?.data;
+      }
+
+      // ── Empty / No Queue State ─────────────────────────────
+      if (session == null) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border:
+                Border.all(color: AppColors.borderColor.withOpacity(0.4)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadowColor.withOpacity(0.05),
+                blurRadius: 16,
+                spreadRadius: -2,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: AppColors.backgroundGray,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.queue_rounded,
+                    color: AppColors.textGray,
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'No Queue Today',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textDark,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      const Text(
+                        'Your queue hasn\'t started yet',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textGray,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Today\'s Summary',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textDark,
+                GestureDetector(
+                  onTap: () => setState(() => _selectedIndex = 1),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 9),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          AppColors.primaryBlue,
+                          AppColors.primaryGreen
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryBlue.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: const Text(
+                      'Open',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  _StatCard(
-                    icon: Icons.people,
-                    label: 'Patients Today',
-                    value: '12',
-                    color: AppColors.primaryBlue,
-                  ),
-                  const SizedBox(width: 12),
-                  _StatCard(
-                    icon: Icons.check_circle,
-                    label: 'Completed',
-                    value: '8',
-                    color: AppColors.successGreen,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  _StatCard(
-                    icon: Icons.schedule,
-                    label: 'Waiting',
-                    value: '4',
-                    color: AppColors.warningOrange,
-                  ),
-                  const SizedBox(width: 12),
-                  _StatCard(
-                    icon: Icons.star,
-                    label: 'Rating',
-                    value: '${doctor?.doctorProfile?.consultationFee ?? "N/A"}',
-                    color: AppColors.primaryGreen,
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         );
-      },
-    );
-  }
+      }
 
-  Widget _buildSchedule() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.calendar_today, size: 80, color: AppColors.textLight),
-          const SizedBox(height: 16),
-          const Text(
-            'Today\'s Schedule',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
-          ),
-          const SizedBox(height: 32),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: const Text(
-              '9:00 AM - 5:00 PM\n\n12 appointments scheduled',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.textGray,
-                height: 1.8,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+      // ── Status config ──────────────────────────────────────
+      final bool isActive = !session.isPaused &&
+          session.status != QueueSessionStatus.closed;
+      final bool isPaused = session.isPaused;
+      final bool isClosed = session.status == QueueSessionStatus.closed;
 
-  Widget _buildQueue() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.line_weight, size: 80, color: AppColors.textLight),
-          const SizedBox(height: 16),
-          const Text(
-            'Queue Management',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
-          ),
-          const SizedBox(height: 32),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: CustomButton(
-              label: 'Open Queue Dashboard',
-              onPressed: () {
-                Navigator.pushNamed(context, '/doctor/queue-dashboard');
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+      final Color statusColor = isPaused
+          ? AppColors.warningOrange
+          : isClosed
+              ? AppColors.textGray
+              : AppColors.successGreen;
 
-  Widget _buildProfile() {
-    return Consumer<AuthService>(
-      builder: (context, authService, _) {
-        final doctor = authService.currentUser;
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 24),
-              Container(
-                width: 100,
-                height: 100,
+      final String statusLabel =
+          isPaused ? 'Paused' : isClosed ? 'Closed' : 'Active';
+
+      final IconData statusIcon = isPaused
+          ? Icons.pause_circle_rounded
+          : isClosed
+              ? Icons.lock_rounded
+              : Icons.play_circle_rounded;
+
+      final int total = session.waitingCount + session.servedCount;
+      final double progress =
+          total > 0 ? session.servedCount / total : 0.0;
+
+      // ── Active Queue Card ──────────────────────────────────
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            colors: isActive
+                ? [AppColors.primaryBlue, AppColors.primaryGreen]
+                : isPaused
+                    ? [
+                        AppColors.warningOrange,
+                        AppColors.warningOrange.withOpacity(0.75)
+                      ]
+                    : [AppColors.textGray, AppColors.textLight],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: statusColor.withOpacity(0.35),
+              blurRadius: 24,
+              spreadRadius: -4,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Decorative circles
+            Positioned(
+              right: -24,
+              top: -24,
+              child: Container(
+                width: 130,
+                height: 130,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withOpacity(0.2),
                   shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.local_hospital, size: 60, color: AppColors.primaryBlue),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Dr. ${doctor?.fullName ?? "Doctor"}',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textDark,
+                  color: Colors.white.withOpacity(0.07),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                doctor?.doctorProfile?.specialization ?? '',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textGray,
+            ),
+            Positioned(
+              left: -16,
+              bottom: -20,
+              child: Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.05),
                 ),
               ),
-              const SizedBox(height: 32),
-              OutlineCustomButton(
-                label: 'Logout',
-                textColor: AppColors.emergencyRed,
-                borderColor: AppColors.emergencyRed,
-                onPressed: () async {
-                  await authService.logout();
-                  if (mounted) {
-                    // Clear all routes and return to StartupWrapper home (which shows LoginScreen)
-                    while (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop();
-                    }
-                  }
-                },
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── Header ──────────────────────────────
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Queue Status',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white70,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: Colors.white.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Pulsing dot for active
+                            if (isActive)
+                              Container(
+                                width: 7,
+                                height: 7,
+                                margin: const EdgeInsets.only(right: 5),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF90EE90),
+                                  shape: BoxShape.circle,
+                                ),
+                              )
+                            else
+                              Icon(statusIcon,
+                                  color: Colors.white, size: 12),
+                            if (!isActive) const SizedBox(width: 4),
+                            Text(
+                              statusLabel,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ── Now Serving ──────────────────────────
+                  if (session.currentPosition > 0) ...[
+                    Text(
+                      '#${session.currentPosition}',
+                      style: const TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        height: 1.0,
+                        letterSpacing: -2,
+                      ),
+                    ),
+                    const Text(
+                      'Now Serving',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // ── Progress bar ─────────────────────────
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${session.servedCount} of $total patients seen',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            '${(progress * 100).toInt()}%',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 8,
+                          backgroundColor: Colors.white.withOpacity(0.2),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                              Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ── Stat pills ───────────────────────────
+                  Row(
+                    children: [
+                      _QueueStatPill(
+                        icon: Icons.people_rounded,
+                        label: 'Total',
+                        value: '$total',
+                      ),
+                      const SizedBox(width: 8),
+                      _QueueStatPill(
+                        icon: Icons.hourglass_top_rounded,
+                        label: 'Waiting',
+                        value: '${session.waitingCount}',
+                      ),
+                      const SizedBox(width: 8),
+                      _QueueStatPill(
+                        icon: Icons.task_alt_rounded,
+                        label: 'Done',
+                        value: '${session.servedCount}',
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ── Action buttons ───────────────────────
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _selectedIndex = 1),
+                          child: Container(
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 13),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.queue_rounded,
+                                    size: 16, color: statusColor),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Manage Queue',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: statusColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (isPaused) ...[
+                        const SizedBox(width: 10),
+                        GestureDetector(
+                          onTap: () =>
+                              setState(() => _selectedIndex = 1),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 13, horizontal: 18),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                  color:
+                                      Colors.white.withOpacity(0.4)),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.play_arrow_rounded,
+                                    size: 16, color: Colors.white),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Resume',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+  Widget _buildStatItem({
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(icon, color: AppColors.primaryBlue, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textDark,
+            ),
           ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textGray,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpcomingAppointments() {
+    return FutureBuilder<ApiResponse<DoctorWeeklyScheduleResponse>>(
+      future: _queueApiService.getDoctorWeeklySchedule(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: CustomLoadingIndicator(message: 'Loading appointments...'),
+          );
+        }
+
+        List<Appointment> appointments = [];
+        if (snapshot.hasData && snapshot.data?.isSuccess == true) {
+          appointments = snapshot.data?.data?.appointments ?? [];
+        }
+
+        if (appointments.isEmpty) {
+          return Card(
+            elevation: 1,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.backgroundLight,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.textLight, width: 1),
+              ),
+              child: const Center(
+                child: Text(
+                  'No upcoming appointments',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textGray,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Column(
+          children: appointments.take(3).map((appointment) {
+            return _buildAppointmentCard(appointment);
+          }).toList(),
         );
       },
     );
+  }
+
+  Widget _buildAppointmentCard(Appointment appointment) {
+    return AppointmentCard(appointment: appointment);
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _StatChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  final Color color;
 
-  const _StatCard({
+  const _StatChip({
     required this.icon,
     required this.label,
     required this.value,
-    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          color: Colors.white.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withOpacity(0.2)),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: 8),
+            Icon(icon, size: 18, color: Colors.white),
+            const SizedBox(height: 6),
             Text(
               value,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: color,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               label,
               style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textGray,
+                fontSize: 11,
+                color: Colors.white70,
+                fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _QueueStatPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _QueueStatPill({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: Colors.white70),
+          const SizedBox(width: 5),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  height: 1.0,
+                ),
+              ),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Colors.white60,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

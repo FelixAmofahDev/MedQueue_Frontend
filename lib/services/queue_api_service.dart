@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medqueue_frontend/models/queue_model.dart';
+import 'package:medqueue_frontend/models/appointment_model.dart';
 import 'package:medqueue_frontend/utils/api_constants.dart';
 import '../models/api_response_model.dart';
 import 'api_client.dart';
@@ -113,11 +114,96 @@ class QueueApiService {
   }
 
   // ============================================================================
+  // DOCTOR SCHEDULE ENDPOINTS
+  // ============================================================================
+
+  /// Get doctor's schedule for a specific date
+  /// GET /auth/doctor/schedule/?date=YYYY-MM-DD
+  Future<ApiResponse<DoctorScheduleResponse>> getDoctorSchedule({
+    DateTime? date,
+  }) async {
+    final dateStr = date != null ? '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}' : '';
+    final queryParams = dateStr.isNotEmpty ? '?date=$dateStr' : '';
+
+    return ApiClient.getWithAuth(
+      '/auth/doctor/schedule/$queryParams',
+      parser: (json) {
+        return DoctorScheduleResponse.fromJson(json as Map<String, dynamic>);
+      },
+    );
+  }
+
+  /// Get doctor's schedule for the next 7 days
+  /// GET /auth/doctor/schedule/?range=week
+  Future<ApiResponse<DoctorWeeklyScheduleResponse>> getDoctorWeeklySchedule() async {
+    return ApiClient.getWithAuth(
+      '/auth/doctor/schedule/?range=week',
+      parser: (json) {
+        return DoctorWeeklyScheduleResponse.fromJson(json as Map<String, dynamic>);
+      },
+    );
+  }
+
+  // ============================================================================
   // HELPERS
   // ============================================================================
 
   /// Format date for API calls
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+}
+
+/// Doctor Schedule Response
+class DoctorScheduleResponse {
+  final List<Appointment> appointments;
+
+  DoctorScheduleResponse({
+    required this.appointments,
+  });
+
+  factory DoctorScheduleResponse.fromJson(Map<String, dynamic> json) {
+    final List<Appointment> appointments = [];
+    if (json['results'] is List) {
+      appointments.addAll(
+        (json['results'] as List)
+            .map((e) => Appointment.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+    } else if (json['appointments'] is List) {
+      appointments.addAll(
+        (json['appointments'] as List)
+            .map((e) => Appointment.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+    }
+    return DoctorScheduleResponse(appointments: appointments);
+  }
+}
+
+/// Doctor Weekly Schedule Response
+class DoctorWeeklyScheduleResponse {
+  final List<Appointment> appointments;
+
+  DoctorWeeklyScheduleResponse({
+    required this.appointments,
+  });
+
+  factory DoctorWeeklyScheduleResponse.fromJson(Map<String, dynamic> json) {
+    final List<Appointment> appointments = [];
+    if (json['results'] is List) {
+      appointments.addAll(
+        (json['results'] as List)
+            .map((e) => Appointment.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+    } else if (json['appointments'] is List) {
+      appointments.addAll(
+        (json['appointments'] as List)
+            .map((e) => Appointment.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+    }
+    return DoctorWeeklyScheduleResponse(appointments: appointments);
   }
 }

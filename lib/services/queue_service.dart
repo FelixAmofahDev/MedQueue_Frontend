@@ -312,4 +312,9 @@ class QueueService extends ChangeNotifier {
     _doctorQueueError = null;
     notifyListeners();
   }
+
+  /// Stop polling
+  void stopPolling() {
+    _stopPolling();
+  }
 }

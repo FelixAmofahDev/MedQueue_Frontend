@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/appointment_model.dart';
 import '../utils/app_colors.dart';
 
@@ -7,12 +8,12 @@ class AppointmentCard extends StatelessWidget {
   final VoidCallback? onTap;
   final List<Widget>? actions;
 
-  const AppointmentCard({
-    Key? key,
+  const AppointmentCard( {
+    super.key,
     required this.appointment,
     this.onTap,
     this.actions,
-  }) : super(key: key);
+  });
 
   _StatusStyle get _statusStyle {
     switch (appointment.status) {
@@ -58,6 +59,17 @@ class AppointmentCard extends StatelessWidget {
           bg: AppColors.backgroundGray,
           icon: Icons.info_outline_rounded,
         );
+    }
+  }
+
+  String _formatDateWithDay(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      final dayName = DateFormat('EEE').format(date);
+      final formattedDate = DateFormat('MMM d, y').format(date);
+      return '$dayName, $formattedDate';
+    } catch (e) {
+      return dateString;
     }
   }
 
@@ -227,7 +239,7 @@ class AppointmentCard extends StatelessWidget {
                     children: [
                       _InfoChip(
                         icon: Icons.calendar_month_rounded,
-                        label: appointment.appointmentDate,
+                        label: _formatDateWithDay(appointment.appointmentDate),
                         color: AppColors.primaryBlue,
                       ),
                       const SizedBox(width: 8),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:medqueue_frontend/screens/patient/appointment_detail_screen.dart';
-import 'package:medqueue_frontend/screens/doctor/queue_dashboard_screen.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/onboarding_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -83,7 +82,9 @@ class AppRoutes {
       
       // Doctor routes
       doctorHome: (context) => const DoctorHomeScreen(),
-      doctorQueueDashboard: (context) => const DoctorQueueDashboardScreen(),
+      // Note: doctorQueueDashboard now maps to DoctorHomeScreen with Queue tab selected
+      // The queue management is now integrated into the main DoctorHomeScreen
+      doctorQueueDashboard: (context) => const DoctorHomeScreen(),
       
       // Admin routes
       adminHome: (context) => const AdminHomeScreen(),
