@@ -382,11 +382,33 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Appointment Details',
-        showBackButton: true,
-        backgroundColor: AppColors.primaryBlue,
-        onBackPressed: Navigator.of(context).pop,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primaryBlue, AppColors.primaryGreen],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        title: Column(
+          children: [
+            const Text(
+              'Appointment Details',
+              style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3),
+            ),
+           
+          ],
+        ),
+       
       ),
       body: _isLoading
           ? const CustomLoadingIndicator(message: 'Loading appointment details...')
