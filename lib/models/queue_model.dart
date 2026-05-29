@@ -169,7 +169,7 @@ class QueueEntry {
           json['completed_at'] != null ? DateTime.parse(json['completed_at']) : null,
       notified2away: json['notified_2away'] ?? false,
       positionsAhead: json['positions_ahead'] ?? 0,
-      estimatedWaitMinutes: json['estimated_wait_minutes'] ?? 0,
+      estimatedWaitMinutes: json['estimated_wait_mins'] ?? 0,
       createdAt:
           DateTime.parse(json['created_at'] ?? DateTime.now().toString()),
       updatedAt:

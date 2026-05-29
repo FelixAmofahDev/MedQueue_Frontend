@@ -41,8 +41,16 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
       final response = await _queueApiService.getDoctorWeeklySchedule();
       if (mounted) {
         if (response.isSuccess) {
+          //fetch full appointment details for each appointment
+          final fullAppointments = <Appointment>[];
+          for (final appointment in response.data?.appointments ?? []) {
+            final fullAppointment = await _queueApiService.getAppointmentDetail(appointment.id);
+            if (fullAppointment.isSuccess) {
+              fullAppointments.add(fullAppointment.data!);
+            }
+          }
           setState(() {
-            _appointments = response.data?.appointments ?? [];
+            _appointments = fullAppointments;
             _applyFilter();
             _isLoading = false;
           });
