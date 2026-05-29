@@ -24,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin(AuthService authService) async {
+  Future<void> _handleLogin(AuthService authService) async {
     if (!_formKey.currentState!.validate()) return;
 
     final success = await authService.login(
@@ -32,9 +32,21 @@ class _LoginScreenState extends State<LoginScreen> {
       _passwordController.text,
     );
 
-    // If login is successful, the StartupWrapper's Consumer will rebuild
-    // and automatically show the appropriate home screen. No need to navigate here.
-    if (!success && mounted) {
+    if (!mounted) return;
+
+    if (success) {
+      final user = authService.currentUser;
+      final route = authService.isDoctor
+          ? AppRoutes.doctorHome
+          : authService.isAdmin
+              ? AppRoutes.adminHome
+              : AppRoutes.patientHome;
+
+      Navigator.of(context).pushNamedAndRemoveUntil(route, (route) => false);
+      return;
+    }
+
+    if (mounted) {
       // Show a snackbar if login failed
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

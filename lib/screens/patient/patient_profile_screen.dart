@@ -339,6 +339,8 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
   }
 
   void _showLogoutDialog(BuildContext context, AuthService authService) {
+    final navigator = Navigator.of(context, rootNavigator: true);
+
     showDialog(
       context: context,
       builder: (context) => ConfirmDialog(
@@ -348,14 +350,13 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
         cancelButtonText: 'Cancel',
         confirmButtonColor: AppColors.emergencyRed,
         onConfirm: () async {
+          Navigator.of(context, rootNavigator: true).pop();
+
           // First logout to clear auth state
           await authService.logout();
-          if (mounted) {
-            // Then clear all navigation routes to ensure LoginScreen shows
-            while (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            }
-          }
+
+          // Then clear all navigation routes to ensure LoginScreen shows
+          navigator.pushNamedAndRemoveUntil('/login', (route) => false);
         },
       ),
     );

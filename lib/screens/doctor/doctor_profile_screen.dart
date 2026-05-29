@@ -259,10 +259,10 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                     icon: Icons.payments_rounded,
                     children: [
                       _ModernInfoTile(
-                        icon: Icons.attach_money_rounded,
+                        icon: Icons.money,
                         label: 'Consultation Fee',
                         value:
-                            '\$${doctor?.doctorProfile?.consultationFee ?? 'N/A'}',
+                            'GHS${doctor?.doctorProfile?.consultationFee ?? 'N/A'}',
                         iconColor: AppColors.emergencyRed,
                         valueWidget:
                             doctor?.doctorProfile?.consultationFee != null
@@ -283,7 +283,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  '\$${doctor!.doctorProfile!.consultationFee}',
+                                  'GHS${doctor!.doctorProfile!.consultationFee}',
                                   style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
@@ -404,6 +404,8 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   }
 
   void _showLogoutDialog(BuildContext context, AuthService authService) {
+    final navigator = Navigator.of(context, rootNavigator: true);
+
     showDialog(
       context: context,
       builder: (context) => ConfirmDialog(
@@ -413,14 +415,12 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
         cancelButtonText: 'Cancel',
         confirmButtonColor: AppColors.emergencyRed,
         onConfirm: () async {
+          Navigator.of(context, rootNavigator: true).pop();
+
           // First logout to clear auth state
           await authService.logout();
-          if (mounted) {
-            // Then clear all navigation routes to ensure LoginScreen shows
-            while (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            }
-          }
+
+          navigator.pushNamedAndRemoveUntil('/login', (route) => false);
         },
       ),
     );

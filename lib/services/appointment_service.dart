@@ -9,18 +9,22 @@ class AppointmentService extends ChangeNotifier {
   Map<String, dynamic>? _fieldErrors;
 
   // Getters
-  List<Appointment> get appointments => _appointments;
+  List<Appointment> get appointments => _appointments..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   Map<String, dynamic>? get fieldErrors => _fieldErrors;
 
+  //upcoming appointments sort by date ascending, past appointments sort by date descending
   List<Appointment> get upcomingAppointments => _appointments
       .where((a) => a.isUpcoming && a.status != 'cancelled')
-      .toList();
+      .toList()
+    ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
+  //
 
   List<Appointment> get pastAppointments => _appointments
       .where((a) => a.isPast || a.status == 'completed')
-      .toList();
+      .toList()
+    ..sort((a, b) => b.appointmentDate.compareTo(a.appointmentDate));
 
   /// Fetch all user's appointments (patient/doctor specific based on JWT token role)
   /// Optional filters: status, from_date, to_date, doctor_id, page, page_size

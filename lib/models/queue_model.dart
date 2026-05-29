@@ -56,7 +56,7 @@ class QueueSession {
       totalPauseMinutes: json['total_pause_minutes'] ?? 0,
       waitingCount: json['waiting_count'] ?? 0,
       servedCount: json['served_count'] ?? 0,
-      isPaused: json['status']! == 'paused',
+      isPaused: (json['status'] as String? ?? '') == 'paused',
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toString()),
       updatedAt: DateTime.parse(json['updated_at'] ?? DateTime.now().toString()),
       entries: (json['entries'] as List?)

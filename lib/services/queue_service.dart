@@ -56,8 +56,8 @@ class QueueService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Use stored polling date if no date provided
-      final targetDate = date ?? _currentPollingDate;
+      // Use an explicit date when provided; otherwise fall back to today.
+      final targetDate = date ?? _currentPollingDate ?? DateTime.now();
       final response = await _apiService.getPatientQueuePosition(date: targetDate);
 
       if (response.isSuccess && response.data != null) {
@@ -82,10 +82,7 @@ class QueueService extends ChangeNotifier {
     // Clear any existing timer
     _stopPolling();
 
-    // Update the polling date only if a new one is provided
-    if (date != null) {
-      _currentPollingDate = date;
-    }
+    _currentPollingDate = date ?? DateTime.now();
 
     // Fetch immediately using stored date or provided date
     fetchPatientQueuePosition(date: _currentPollingDate);
@@ -308,6 +305,7 @@ class QueueService extends ChangeNotifier {
     _currentQueueEntry = null;
     _waitTimeInfo = null;
     _currentQueueSession = null;
+    _currentPollingDate = null;
     _errorMessage = null;
     _doctorQueueError = null;
     notifyListeners();

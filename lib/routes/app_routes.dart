@@ -68,7 +68,21 @@ class AppRoutes {
       forgotPassword: (context) => const ForgotPasswordScreen(),
       patientHome: (context) => const PatientHomeScreen(),
       bookAppointment: (context) => const BookAppointmentScreen(),
-      queueTracker: (context) => const QueueTrackerScreen(),
+      queueTracker: (context) {
+        final arguments = ModalRoute.of(context)?.settings.arguments;
+        DateTime? initialDate;
+
+        if (arguments is DateTime) {
+          initialDate = arguments;
+        } else if (arguments is Map<String, dynamic>) {
+          final value = arguments['date'];
+          if (value is DateTime) {
+            initialDate = value;
+          }
+        }
+
+        return QueueTrackerScreen(initialDate: initialDate);
+      },
       patientChatbot: (context) => const ChatbotScreen(),
       emergencySos: (context) => const EmergencySosScreen(),
       patientNotifications: (context) => const NotificationsScreen(),

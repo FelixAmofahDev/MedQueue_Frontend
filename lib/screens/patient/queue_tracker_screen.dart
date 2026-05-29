@@ -11,7 +11,9 @@ import '../../models/queue_model.dart';
 import '../../models/appointment_model.dart';
 
 class QueueTrackerScreen extends StatefulWidget {
-  const QueueTrackerScreen({super.key});
+  final DateTime? initialDate;
+
+  const QueueTrackerScreen({super.key, this.initialDate});
 
   @override
   State<QueueTrackerScreen> createState() => _QueueTrackerScreenState();
@@ -53,28 +55,9 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final queueService = context.read<QueueService>();
-      final appointmentService = context.read<AppointmentService>();
-
-      if (queueService.currentPollingDate == null) {
-        appointmentService.fetchAppointments().then((_) {
-          final upcoming = appointmentService.upcomingAppointments;
-          if (upcoming.isNotEmpty) {
-            upcoming.sort(
-                (a, b) => a.appointmentDate.compareTo(b.appointmentDate));
-            final nextDate =
-                DateTime.parse(upcoming.first.appointmentDate);
-            queueService.startPatientQueuePolling(date: nextDate);
-            _fetchAppointmentForDate(nextDate);
-          } else {
-            queueService.startPatientQueuePolling();
-          }
-        });
-      } else {
-        queueService.startPatientQueuePolling();
-        if (queueService.currentPollingDate != null) {
-          _fetchAppointmentForDate(queueService.currentPollingDate!);
-        }
-      }
+      final targetDate = widget.initialDate ?? DateTime.now();
+      queueService.startPatientQueuePolling(date: targetDate);
+      _fetchAppointmentForDate(targetDate);
     });
   }
 
@@ -953,7 +936,7 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen>
             ),
             const SizedBox(height: 20),
             const Text(
-              'Not in a Queue',
+              'Not in a Queue Today',
               style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
@@ -962,44 +945,9 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen>
             ),
             const SizedBox(height: 8),
             const Text(
-              'Book an appointment to join a queue and track your position in real time.',
+              'You are currently not in any active queues. Please check back later.',
               textAlign: TextAlign.center,
-              style:
-                  TextStyle(fontSize: 14, color: AppColors.textGray),
-            ),
-            const SizedBox(height: 28),
-            GestureDetector(
-              onTap: () =>
-                  Navigator.of(context).pushNamed('/book-appointment'),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 28, vertical: 14),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      AppColors.primaryBlue,
-                      AppColors.primaryGreen
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primaryBlue.withOpacity(0.3),
-                      blurRadius: 14,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: const Text(
-                  'Book Appointment',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15),
-                ),
-              ),
+              style: TextStyle(fontSize: 14, color: AppColors.textGray),
             ),
           ],
         ),
