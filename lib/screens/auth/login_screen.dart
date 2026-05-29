@@ -391,7 +391,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     : () {
                                         Navigator.pushNamed(
                                           context,
-                                          AppRoutes.roleSelection,
+                                          AppRoutes.register,
+                                          arguments: {'role': 'patient'},
                                         );
                                       },
                                 style: TextButton.styleFrom(

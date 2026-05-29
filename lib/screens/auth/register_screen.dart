@@ -39,7 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedRole = widget.role ?? 'patient';
+    _selectedRole = 'patient';
   }
 
   @override
@@ -131,7 +131,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Create your $_selectedRole account',
+                        'Create your patient account',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 14,

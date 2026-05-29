@@ -5,11 +5,11 @@ import '../../routes/app_routes.dart';
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
 
-  void _selectRole(BuildContext context, String role) {
+  void _continueToPatientSignup(BuildContext context) {
     Navigator.pushNamed(
       context,
       AppRoutes.register,
-      arguments: {'role': role},
+      arguments: {'role': 'patient'},
     );
   }
 
@@ -30,7 +30,7 @@ class RoleSelectionScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 20),
               const Text(
-                'Select Your Role',
+                'Create Your Patient Account',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
@@ -40,7 +40,7 @@ class RoleSelectionScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Choose how you would like to use MedQueue',
+                'Sign up as a patient to book appointments and track your care',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
@@ -53,15 +53,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 icon: Icons.person,
                 title: 'Patient',
                 description: 'Book appointments and manage your health',
-                onTap: () => _selectRole(context, 'patient'),
-              ),
-              const SizedBox(height: 16),
-              // Doctor Card
-              _RoleCard(
-                icon: Icons.medical_services,
-                title: 'Doctor',
-                description: 'Manage your practice and appointments',
-                onTap: () => _selectRole(context, 'doctor'),
+                onTap: () => _continueToPatientSignup(context),
               ),
               const Spacer(),
               // Already have account

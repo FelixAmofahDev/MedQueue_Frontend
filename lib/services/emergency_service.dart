@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../models/emergency_model.dart';
 import 'api_client.dart';
-import '../models/api_response_model.dart';
 
 class EmergencyService extends ChangeNotifier {
   final List<EmergencyRequest> _emergencies = [];
@@ -15,7 +14,7 @@ class EmergencyService extends ChangeNotifier {
   Future<EmergencyRequest?> getActiveEmergency() async {
     try {
       final resp = await ApiClient.getWithAuth<Map<String, dynamic>>(
-        '/sos/active/',
+        '/auth/sos/active/',
         parser: (json) => json as Map<String, dynamic>,
       );
 
@@ -41,7 +40,7 @@ class EmergencyService extends ChangeNotifier {
 
     try {
       final resp = await ApiClient.postWithAuth<EmergencyRequest>(
-        '/sos/$emergencyId/cancel/',
+        '/auth/sos/$emergencyId/cancel/',
         body: {},
         parser: (json) => EmergencyRequest.fromJson(json as Map<String, dynamic>),
       );
@@ -85,7 +84,7 @@ class EmergencyService extends ChangeNotifier {
     notifyListeners();
     try {
       final resp = await ApiClient.postWithAuth<EmergencyRequest>(
-        '/sos/',
+        '/auth/sos/',
         body: {
           'latitude': latitude,
           'longitude': longitude,
@@ -123,7 +122,7 @@ class EmergencyService extends ChangeNotifier {
     try {
       // Call patient history endpoint
       final resp = await ApiClient.getWithAuth<Map<String, dynamic>>(
-        '/history/',
+        '/auth/sos/history/',
         parser: (json) => json as Map<String, dynamic>,
       );
 

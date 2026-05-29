@@ -98,7 +98,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         CustomButton(
                           label: 'Get Started',
                           onPressed: () {
-                            Navigator.of(context).pushReplacementNamed('/role-selection');
+                            Navigator.of(context).pushReplacementNamed(
+                              '/register',
+                              arguments: {'role': 'patient'},
+                            );
                           },
                         ),
                       ],
@@ -110,7 +113,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           child: OutlineCustomButton(
                             label: 'Skip',
                             onPressed: () {
-                              Navigator.of(context).pushReplacementNamed('/role-selection');
+                              Navigator.of(context).pushReplacementNamed(
+                                '/register',
+                                arguments: {'role': 'patient'},
+                              );
                             },
                           ),
                         ),
