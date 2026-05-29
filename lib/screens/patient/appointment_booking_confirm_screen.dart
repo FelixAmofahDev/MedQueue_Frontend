@@ -70,7 +70,11 @@ class _AppointmentBookingConfirmScreenState
               onPressed: () {
                 Navigator.pop(context); // Close dialog
                 // Navigate to queue tracker screen
-                Navigator.pushReplacementNamed(context, '/queue-tracker');
+                Navigator.pushNamedAndRemoveUntil(
+  context,
+  '/queue-tracker',
+  ModalRoute.withName('/patient-home'),
+);
               },
               child: const Text('View Queue'),
             ),

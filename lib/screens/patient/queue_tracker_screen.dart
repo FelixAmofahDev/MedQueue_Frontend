@@ -175,6 +175,17 @@ class _QueueTrackerScreenState extends State<QueueTrackerScreen>
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
+         leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/patient-home',
+        (route) => false,
+      );
+    },
+  ),
+
         backgroundColor: Colors.transparent,
         elevation: 0,
         flexibleSpace: Container(

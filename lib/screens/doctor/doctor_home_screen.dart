@@ -34,28 +34,24 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        title: const Text('MedQueue Doctor'),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: Colors.white,
-      ),
-      body: _getBody(),
-      bottomNavigationBar: ModernBottomNavBar(
-        selectedIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        items: const [
-          NavItem(icon: Icons.home_rounded, label: 'Home'),
-          NavItem(icon: Icons.queue_rounded, label: 'Queue'),
-          NavItem(icon: Icons.person_rounded, label: 'Profile'),
-        ],
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+       
+        body: _getBody(),
+        bottomNavigationBar: ModernBottomNavBar(
+          selectedIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          items: const [
+            NavItem(icon: Icons.home_rounded, label: 'Home'),
+            NavItem(icon: Icons.queue_rounded, label: 'Queue'),
+            NavItem(icon: Icons.person_rounded, label: 'Profile'),
+          ],
+        ),
       ),
     );
   }
@@ -74,11 +70,40 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   Widget _buildHome() {
-    return Consumer<AuthService>(
-      builder: (context, authService, _) {
-        final doctor = authService.currentUser;
-        
-        return SingleChildScrollView(
+  return Consumer<AuthService>(
+    builder: (context, authService, _) {
+      final doctor = authService.currentUser;
+
+      return Scaffold(
+        appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primaryBlue, AppColors.primaryGreen],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        title: Column(
+          children: [
+            const Text(
+              'MedQueue GH',
+              style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3),
+            ),
+           
+          ],
+        ),
+       
+      ),
+        body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,11 +111,11 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
               // Welcome Banner
               _buildWelcomeBanner(doctor),
               const SizedBox(height: 24),
-              
+
               // Queue Status Card
               _buildQueueStatusCard(),
               const SizedBox(height: 24),
-              
+
               // Upcoming Appointments Section
               const Text(
                 'This Week\'s Upcoming Appointments',
@@ -101,7 +126,10 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              _buildUpcomingAppointments(),              const SizedBox(height: 12),
+
+              _buildUpcomingAppointments(),
+              const SizedBox(height: 12),
+
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
@@ -109,18 +137,21 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const DoctorAppointmentsScreen(),
+                        builder: (context) =>
+                            const DoctorAppointmentsScreen(),
                       ),
                     );
                   },
                   child: const Text('View All Appointments'),
                 ),
-              ),            ],
+              ),
+            ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
   Widget _buildWelcomeBanner(dynamic doctor) {
     return FutureBuilder<ApiResponse<DoctorWeeklyScheduleResponse>>(

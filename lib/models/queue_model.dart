@@ -188,7 +188,7 @@ class QueueEntry {
         'completed_at': completedAt?.toIso8601String(),
         'notified_2away': notified2away,
         'positions_ahead': positionsAhead,
-        'estimated_wait_minutes': estimatedWaitMinutes,
+        'estimated_wait_mins': estimatedWaitMinutes,
         'created_at': createdAt.toIso8601String(),
         'updated_at': updatedAt.toIso8601String(),
       };
@@ -209,14 +209,14 @@ class WaitTimeInfo {
   factory WaitTimeInfo.fromJson(Map<String, dynamic> json) {
     return WaitTimeInfo(
       positionsAhead: json['positions_ahead'] ?? 0,
-      estimatedWaitMinutes: json['estimated_wait_minutes'] ?? 0,
+      estimatedWaitMinutes: json['estimated_wait_mins'] ?? 0,
       currentPosition: json['current_position'] ?? 0,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'positions_ahead': positionsAhead,
-        'estimated_wait_minutes': estimatedWaitMinutes,
+        'estimated_wait_mins': estimatedWaitMinutes,
         'current_position': currentPosition,
       };
 }
