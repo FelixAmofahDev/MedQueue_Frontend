@@ -22,6 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _whatsappController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -47,6 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _usernameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _whatsappController.dispose();
     _firstNameController.dispose();
     _lastNameController.dispose();
     _passwordController.dispose();
@@ -66,6 +68,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       username: _usernameController.text.trim(),
       email: _emailController.text.trim(),
       phoneNumber: _phoneController.text.trim(),
+      whatsappNumber: _whatsappController.text.trim().isEmpty ? null : _whatsappController.text.trim(),
       password: _passwordController.text,
       passwordConfirm: _passwordConfirmController.text,
       firstName: _firstNameController.text.trim(),
@@ -249,6 +252,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ),
                       const SizedBox(height: 12),
+                      // WhatsApp Number
+                      TextFormField(
+                        controller: _whatsappController,
+                        enabled: !authService.isLoading,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          labelText: 'WhatsApp Number (optional)',
+                          prefixIcon: const Icon(Icons.chat_bubble_outline),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       // First Name
                       TextFormField(
                         controller: _firstNameController,
@@ -289,7 +306,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 12),
                       // Gender Dropdown
                       DropdownButtonFormField(
-                        value: _selectedGender,
+                        initialValue: _selectedGender,
                         decoration: InputDecoration(
                           labelText: 'Gender',
                           prefixIcon: const Icon(Icons.wc),
@@ -351,7 +368,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       if (_selectedRole == 'patient') ...[
                         // Blood Group
                         DropdownButtonFormField(
-                          value: _bloodGroupController.text.isEmpty ? null : _bloodGroupController.text,
+                          initialValue: _bloodGroupController.text.isEmpty ? null : _bloodGroupController.text,
                           decoration: InputDecoration(
                             labelText: 'Blood Group (optional)',
                             prefixIcon: const Icon(Icons.bloodtype),

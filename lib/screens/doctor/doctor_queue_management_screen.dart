@@ -27,7 +27,7 @@ class _DoctorQueueManagementScreenState
   Timer? _pulseTimer;
   final TextEditingController _pauseReasonController = TextEditingController();
   late AnimationController _pulseController;
-  bool _pulsing = false;
+  final bool _pulsing = false;
 
   @override
   void initState() {
@@ -1069,7 +1069,7 @@ class _DoctorQueueManagementScreenState
                   if (_isToday) ...[
                     const SizedBox(height: 14),
                     GestureDetector(
-                      onTap: () => _markCompleted(currentEntry!.id),
+                      onTap: () => _markCompleted(currentEntry.id),
                       child: Container(
                         width: double.infinity,
                         padding:

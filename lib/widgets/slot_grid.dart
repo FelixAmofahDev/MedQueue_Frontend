@@ -8,12 +8,12 @@ class SlotGrid extends StatelessWidget {
   final bool crossAxisCount3;
 
   const SlotGrid({
-    Key? key,
+    super.key,
     required this.slots,
     required this.onSlotSelected,
     this.selectedSlot,
     this.crossAxisCount3 = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -66,12 +66,12 @@ class SlotCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const SlotCard({
-    Key? key,
+    super.key,
     required this.slot,
     required this.isSelected,
     required this.isAvailable,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -132,11 +132,11 @@ class SlotListView extends StatelessWidget {
   final ValueChanged<TimeSlot> onSlotSelected;
 
   const SlotListView({
-    Key? key,
+    super.key,
     required this.slots,
     required this.onSlotSelected,
     this.selectedSlot,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

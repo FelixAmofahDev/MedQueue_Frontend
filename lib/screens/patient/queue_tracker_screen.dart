@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medqueue_frontend/widgets/appointment_card.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import 'dart:math' as math;
 import '../../services/queue_service.dart';
 import '../../services/appointment_service.dart';

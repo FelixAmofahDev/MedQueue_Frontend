@@ -10,7 +10,7 @@ import '../../widgets/doctor_card.dart';
 import '../../widgets/slot_grid.dart';
 
 class DoctorDetailScreen extends StatefulWidget {
-  const DoctorDetailScreen({Key? key}) : super(key: key);
+  const DoctorDetailScreen({super.key});
 
   @override
   State<DoctorDetailScreen> createState() => _DoctorDetailScreenState();

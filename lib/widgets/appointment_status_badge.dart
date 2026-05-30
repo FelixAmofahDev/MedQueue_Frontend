@@ -6,10 +6,10 @@ class AppointmentStatusBadge extends StatelessWidget {
   final bool isSmall;
 
   const AppointmentStatusBadge({
-    Key? key,
+    super.key,
     required this.status,
     this.isSmall = false,
-  }) : super(key: key);
+  });
 
   Color get _backgroundColor {
     switch (status) {

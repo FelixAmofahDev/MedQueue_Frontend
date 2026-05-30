@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/appointment_model.dart';
 import '../utils/app_colors.dart';
+import '../services/whatsapp_service.dart';
 
 class AppointmentCard extends StatelessWidget {
   final Appointment appointment;
@@ -73,6 +74,22 @@ class AppointmentCard extends StatelessWidget {
     } catch (e) {
       return dateString;
     }
+  }
+
+  String? _contactNumber() {
+    return showPatientName
+        ? appointment.patientDetail.whatsappNumber
+        : appointment.doctorDetail.whatsappNumber;
+  }
+
+  bool _contactHasWhatsApp() {
+    return showPatientName
+        ? appointment.patientDetail.hasWhatsApp
+        : appointment.doctorDetail.hasWhatsApp;
+  }
+
+  String _whatsappLabel() {
+    return showPatientName ? 'Patient WhatsApp' : 'Doctor WhatsApp';
   }
 
   @override
@@ -280,6 +297,34 @@ class AppointmentCard extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+                  ],
+
+                  if (_contactHasWhatsApp()) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => WhatsAppService.openWhatsApp(
+                          _contactNumber(),
+                          message: showPatientName
+                              ? 'Hello, I am reaching out about my appointment.'
+                              : 'Hello, I am reaching out about this appointment.',
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF128C7E),
+                          side: const BorderSide(color: Color(0xFF128C7E)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        icon: const Icon(Icons.chat_rounded, size: 18),
+                        label: Text(
+                          _whatsappLabel(),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
                     ),
                   ],
 

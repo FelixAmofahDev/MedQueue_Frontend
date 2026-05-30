@@ -14,7 +14,7 @@ import '../../models/time_slot_model.dart';
 import '../../models/queue_model.dart';
 
 class AppointmentDetailScreen extends StatefulWidget {
-  const AppointmentDetailScreen({Key? key}) : super(key: key);
+  const AppointmentDetailScreen({super.key});
 
   @override
   State<AppointmentDetailScreen> createState() => _AppointmentDetailScreenState();

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../models/appointment_model.dart';
+import '../services/whatsapp_service.dart';
 
 class DoctorCard extends StatelessWidget {
   final String doctorId;
@@ -11,6 +12,9 @@ class DoctorCard extends StatelessWidget {
   final bool isAvailable;
   final String nextAvailable;
   final VoidCallback onTap;
+  final String? whatsappNumber;
+  final bool whatsappLinked;
+  final VoidCallback? onWhatsAppTap;
 
   const DoctorCard({
     super.key,
@@ -22,6 +26,9 @@ class DoctorCard extends StatelessWidget {
     required this.isAvailable,
     required this.nextAvailable,
     required this.onTap,
+    this.whatsappNumber,
+    this.whatsappLinked = false,
+    this.onWhatsAppTap,
   });
 
   @override
@@ -127,6 +134,25 @@ class DoctorCard extends StatelessWidget {
                   ),
                 ),
               ),
+
+              if (whatsappLinked && (whatsappNumber ?? '').trim().isNotEmpty) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: onWhatsAppTap ?? () => WhatsAppService.openWhatsApp(
+                      whatsappNumber,
+                      message: 'Hello Dr. $name, I found your profile on MedQueue.',
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF128C7E),
+                      side: const BorderSide(color: Color(0xFF128C7E)),
+                    ),
+                    icon: const Icon(Icons.chat_rounded, size: 18),
+                    label: const Text('WhatsApp'),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -140,6 +166,7 @@ class RoughAppointmentCard extends StatelessWidget {
   final VoidCallback? onReschedule;
   final VoidCallback? onCancel;
   final VoidCallback onTap;
+  final bool showPatientName;
 
   const RoughAppointmentCard({
     super.key,
@@ -147,6 +174,7 @@ class RoughAppointmentCard extends StatelessWidget {
     this.onReschedule,
     this.onCancel,
     required this.onTap,
+    this.showPatientName = false,
   });
 
   String get _status => appointment.status;
@@ -328,6 +356,31 @@ class RoughAppointmentCard extends StatelessWidget {
                     ],
                   ),
                 ),
+
+                if ((appointment.patientDetail.hasWhatsApp && showPatientName) ||
+                    (appointment.doctorDetail.hasWhatsApp && !showPatientName))
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => WhatsAppService.openWhatsApp(
+                          showPatientName
+                              ? appointment.patientDetail.whatsappNumber
+                              : appointment.doctorDetail.whatsappNumber,
+                          message: showPatientName
+                              ? 'Hello, I am reaching out about my appointment.'
+                              : 'Hello, I am reaching out about this appointment.',
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF128C7E),
+                          side: const BorderSide(color: Color(0xFF128C7E)),
+                        ),
+                        icon: const Icon(Icons.chat_rounded, size: 18),
+                        label: Text(showPatientName ? 'Patient WhatsApp' : 'Doctor WhatsApp'),
+                      ),
+                    ),
+                  ),
             ],
           ),
         ),

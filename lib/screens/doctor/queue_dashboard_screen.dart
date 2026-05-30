@@ -14,7 +14,7 @@ class DoctorQueueDashboardScreen extends StatefulWidget {
 }
 
 class _DoctorQueueDashboardScreenState extends State<DoctorQueueDashboardScreen> {
-  TextEditingController _pauseReasonController = TextEditingController();
+  final TextEditingController _pauseReasonController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
 
   @override

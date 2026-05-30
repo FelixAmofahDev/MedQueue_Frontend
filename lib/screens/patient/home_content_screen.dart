@@ -139,7 +139,7 @@ class HomeContentScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Hello, ${user?.fullName?.split(' ').first ?? "there"} 👋',
+                            'Hello, ${user?.fullName.split(' ').first ?? "there"} 👋',
                             style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w800,
@@ -398,8 +398,9 @@ class _ModernQuickAction extends StatelessWidget {
   String get _subtitle {
     if (label.contains('Book')) return 'Find a doctor';
     if (label.contains('Queue')) return 'Live updates';
-    if (label.contains('AI') || label.contains('Assistant'))
+    if (label.contains('AI') || label.contains('Assistant')) {
       return 'Ask anything';
+    }
     if (label.contains('Emergency')) return 'Tap to call';
     return '';
   }

@@ -39,7 +39,7 @@ class QueueApiService {
     return ApiClient.postWithAuth(
       '/auth/leave/',
       body: {},
-      parser: (json) => json as Map<String, dynamic>,
+      parser: (json) => json,
     );
   }
 
@@ -58,7 +58,7 @@ class QueueApiService {
     return ApiClient.getWithAuth(
       '/auth/doctor/$queryParams',
       parser: (json) {
-        return QueueSession.fromJson(json as Map<String, dynamic>);
+        return QueueSession.fromJson(json);
       },
     );
   }
@@ -69,7 +69,7 @@ class QueueApiService {
     return ApiClient.postWithAuth(
       '/auth/doctor/call-next/',
       body: {},
-      parser: (json) => json as Map<String, dynamic>,
+      parser: (json) => json,
     );
   }
 
@@ -79,7 +79,7 @@ class QueueApiService {
     return ApiClient.postWithAuth(
       '/auth/doctor/entries/$entryId/complete/',
       body: {},
-      parser: (json) => json as Map<String, dynamic>,
+      parser: (json) => json,
     );
   }
 
@@ -89,7 +89,7 @@ class QueueApiService {
     return ApiClient.postWithAuth(
       '/auth/doctor/pause/',
       body: {'pause_reason': pauseReason},
-      parser: (json) => json as Map<String, dynamic>,
+      parser: (json) => json,
     );
   }
 
@@ -99,7 +99,7 @@ class QueueApiService {
     return ApiClient.postWithAuth(
       '/auth/doctor/resume/',
       body: {},
-      parser: (json) => json as Map<String, dynamic>,
+      parser: (json) => json,
     );
   }
 
@@ -109,7 +109,7 @@ class QueueApiService {
     return ApiClient.postWithAuth(
       '/auth/doctor/close/',
       body: {},
-      parser: (json) => json as Map<String, dynamic>,
+      parser: (json) => json,
     );
   }
 
@@ -128,7 +128,7 @@ class QueueApiService {
     return ApiClient.getWithAuth(
       '/auth/doctor/schedule/$queryParams',
       parser: (json) {
-        return DoctorScheduleResponse.fromJson(json as Map<String, dynamic>);
+        return DoctorScheduleResponse.fromJson(json);
       },
     );
   }
@@ -139,7 +139,7 @@ class QueueApiService {
     return ApiClient.getWithAuth(
       '/auth/doctor/schedule/?range=week',
       parser: (json) {
-        return DoctorWeeklyScheduleResponse.fromJson(json as Map<String, dynamic>);
+        return DoctorWeeklyScheduleResponse.fromJson(json);
       },
     );
   }
@@ -150,7 +150,7 @@ class QueueApiService {
     return ApiClient.getWithAuth(
       '/auth/$appointmentId/',
       parser: (json) {
-        return Appointment.fromJson(json as Map<String, dynamic>);
+        return Appointment.fromJson(json);
       },
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/doctor_model.dart';
 import '../utils/app_colors.dart';
+import '../services/whatsapp_service.dart';
 
 class DoctorCard extends StatelessWidget {
   final Doctor doctor;
@@ -9,12 +10,12 @@ class DoctorCard extends StatelessWidget {
   final bool showAvailability;
 
   const DoctorCard({
-    Key? key,
+    super.key,
     required this.doctor,
     this.onTap,
     this.action,
     this.showAvailability = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -203,6 +204,32 @@ class DoctorCard extends StatelessWidget {
                   ], */
                 ],
               ),
+
+              if (doctor.hasWhatsApp) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => WhatsAppService.openWhatsApp(
+                      doctor.whatsappNumber,
+                      message: 'Hello Dr. ${doctor.fullName}, I found your profile on MedQueue.',
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF128C7E),
+                      side: const BorderSide(color: Color(0xFF128C7E)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    icon: const Icon(Icons.chat_rounded, size: 18),
+                    label: const Text(
+                      'WhatsApp',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

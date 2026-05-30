@@ -20,7 +20,7 @@ class QueueService extends ChangeNotifier {
 
   // Polling
   Timer? _pollTimer;
-  Duration _pollInterval = const Duration(seconds: 5);
+  final Duration _pollInterval = const Duration(seconds: 5);
   DateTime? _currentPollingDate; // Store the date being polled
 
   // Getters

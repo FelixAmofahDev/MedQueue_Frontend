@@ -5,7 +5,7 @@ import '../../services/chatbot_service.dart';
 import '../../utils/app_colors.dart';
 
 class ChatbotScreen extends StatefulWidget {
-  const ChatbotScreen({Key? key}) : super(key: key);
+  const ChatbotScreen({super.key});
 
   @override
   State<ChatbotScreen> createState() => _ChatbotScreenState();
@@ -437,7 +437,7 @@ class _MessageBubble extends StatelessWidget {
 }
 
 class _LoadingBubble extends StatelessWidget {
-  const _LoadingBubble({Key? key}) : super(key: key);
+  const _LoadingBubble({super.key});
 
   @override
   Widget build(BuildContext context) {

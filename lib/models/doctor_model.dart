@@ -11,6 +11,9 @@ class Doctor {
   final bool isAcceptingPatients;
   final String profilePictureUrl;
   final String? bio;
+  final String? whatsappNumber;
+  final bool whatsappLinked;
+  
 
   Doctor({
     required this.id,
@@ -23,6 +26,8 @@ class Doctor {
     required this.isAcceptingPatients,
     required this.profilePictureUrl,
     this.bio,
+    this.whatsappNumber,
+    this.whatsappLinked = false,
   });
 
   String get displayName => fullName;
@@ -31,6 +36,8 @@ class Doctor {
     final names = fullName.split(' ');
     return names.map((n) => n.isNotEmpty ? n[0] : '').join();
   }
+
+  bool get hasWhatsApp => whatsappLinked && (whatsappNumber ?? '').trim().isNotEmpty;
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
     return Doctor(
@@ -44,6 +51,8 @@ class Doctor {
       isAcceptingPatients: json['is_accepting_patients'] as bool? ?? true,
       profilePictureUrl: json['profile_picture_url'] as String? ?? '',
       bio: json['bio'] as String? ?? '',
+      whatsappNumber: json['whatsapp_number'] as String?,
+      whatsappLinked: json['whatsapp_linked'] as bool? ?? false,
     );
   }
 
@@ -58,5 +67,7 @@ class Doctor {
         'is_accepting_patients': isAcceptingPatients,
         'profile_picture_url': profilePictureUrl,
         'bio': bio,
+        'whatsapp_number': whatsappNumber,
+        'whatsapp_linked': whatsappLinked,
       };
 }

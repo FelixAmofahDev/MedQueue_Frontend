@@ -58,13 +58,19 @@ class PatientDetail {
   final String fullName;
   final String email;
   final String phone;
+  final String? whatsappNumber;
+  final bool whatsappLinked;
 
   PatientDetail({
     required this.id,
     required this.fullName,
     required this.email,
     required this.phone,
+    this.whatsappNumber,
+    this.whatsappLinked = false,
   });
+
+  bool get hasWhatsApp => whatsappLinked && (whatsappNumber ?? '').trim().isNotEmpty;
 
   factory PatientDetail.fromJson(Map<String, dynamic> json) {
     return PatientDetail(
@@ -72,6 +78,8 @@ class PatientDetail {
       fullName: json['full_name'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
+      whatsappNumber: json['whatsapp_number'] as String?,
+      whatsappLinked: json['whatsapp_linked'] as bool? ?? false,
     );
   }
 
@@ -80,6 +88,8 @@ class PatientDetail {
         'full_name': fullName,
         'email': email,
         'phone': phone,
+        'whatsapp_number': whatsappNumber,
+        'whatsapp_linked': whatsappLinked,
       };
 }
 
@@ -89,6 +99,8 @@ class DoctorDetail {
   final String email;
   final String phone;
   final String specialization;
+  final String? whatsappNumber;
+  final bool whatsappLinked;
 
   DoctorDetail({
     required this.id,
@@ -96,7 +108,11 @@ class DoctorDetail {
     required this.email,
     required this.phone,
     required this.specialization,
+    this.whatsappNumber,
+    this.whatsappLinked = false,
   });
+
+  bool get hasWhatsApp => whatsappLinked && (whatsappNumber ?? '').trim().isNotEmpty;
 
   factory DoctorDetail.fromJson(Map<String, dynamic> json) {
     return DoctorDetail(
@@ -105,6 +121,8 @@ class DoctorDetail {
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
       specialization: json['specialization'] as String? ?? '',
+      whatsappNumber: json['whatsapp_number'] as String?,
+      whatsappLinked: json['whatsapp_linked'] as bool? ?? false,
     );
   }
 
@@ -114,6 +132,8 @@ class DoctorDetail {
         'email': email,
         'phone': phone,
         'specialization': specialization,
+        'whatsapp_number': whatsappNumber,
+        'whatsapp_linked': whatsappLinked,
       };
 }
 

@@ -7,7 +7,7 @@ import '../../services/queue_service.dart';
 import '../../utils/app_colors.dart';
 
 class AppointmentBookingConfirmScreen extends StatefulWidget {
-  const AppointmentBookingConfirmScreen({Key? key}) : super(key: key);
+  const AppointmentBookingConfirmScreen({super.key});
 
   @override
   State<AppointmentBookingConfirmScreen> createState() =>

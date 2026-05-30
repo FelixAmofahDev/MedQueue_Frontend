@@ -15,7 +15,7 @@ class EmergencyService extends ChangeNotifier {
     try {
       final resp = await ApiClient.getWithAuth<Map<String, dynamic>>(
         '/auth/sos/active/',
-        parser: (json) => json as Map<String, dynamic>,
+        parser: (json) => json,
       );
 
       if (!resp.isSuccess || resp.data == null) {
@@ -42,7 +42,7 @@ class EmergencyService extends ChangeNotifier {
       final resp = await ApiClient.postWithAuth<EmergencyRequest>(
         '/auth/sos/$emergencyId/cancel/',
         body: {},
-        parser: (json) => EmergencyRequest.fromJson(json as Map<String, dynamic>),
+        parser: (json) => EmergencyRequest.fromJson(json),
       );
 
       _isLoading = false;
@@ -92,7 +92,7 @@ class EmergencyService extends ChangeNotifier {
           'emergency_type': 'medical',
           'description': description,
         },
-        parser: (json) => EmergencyRequest.fromJson(json as Map<String, dynamic>),
+        parser: (json) => EmergencyRequest.fromJson(json),
       );
 
       if (!resp.isSuccess || resp.data == null) {
@@ -123,7 +123,7 @@ class EmergencyService extends ChangeNotifier {
       // Call patient history endpoint
       final resp = await ApiClient.getWithAuth<Map<String, dynamic>>(
         '/auth/sos/history/',
-        parser: (json) => json as Map<String, dynamic>,
+        parser: (json) => json,
       );
 
       _isLoading = false;
@@ -168,7 +168,7 @@ class EmergencyService extends ChangeNotifier {
       final resp = await ApiClient.postWithAuth<EmergencyRequest>(
         '/admin/$emergencyId/status/',
         body: {'new_status': 'dispatched'},
-        parser: (json) => EmergencyRequest.fromJson(json as Map<String, dynamic>),
+        parser: (json) => EmergencyRequest.fromJson(json),
       );
 
       _isLoading = false;
@@ -203,7 +203,7 @@ class EmergencyService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      String _statusToApiString(EmergencyStatus s) {
+      String statusToApiString(EmergencyStatus s) {
         switch (s) {
           case EmergencyStatus.pending:
             return 'pending';
@@ -221,9 +221,9 @@ class EmergencyService extends ChangeNotifier {
       final resp = await ApiClient.postWithAuth<EmergencyRequest>(
         '/admin/$emergencyId/status/',
         body: {
-          'new_status': _statusToApiString(status),
+          'new_status': statusToApiString(status),
         },
-        parser: (json) => EmergencyRequest.fromJson(json as Map<String, dynamic>),
+        parser: (json) => EmergencyRequest.fromJson(json),
       );
 
       _isLoading = false;

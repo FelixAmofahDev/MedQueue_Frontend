@@ -64,7 +64,9 @@ class _ModernBottomNavBarState extends State<ModernBottomNavBar>
 
   @override
   void dispose() {
-    for (final c in _controllers) c.dispose();
+    for (final c in _controllers) {
+      c.dispose();
+    }
     super.dispose();
   }
 

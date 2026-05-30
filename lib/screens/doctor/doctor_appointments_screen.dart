@@ -367,7 +367,7 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
             // Appointments for this date
             ...entry.value.map((appointment) {
               return _buildAppointmentCard(appointment);
-            }).toList(),
+            }),
 
             const SizedBox(height: 20),
           ],

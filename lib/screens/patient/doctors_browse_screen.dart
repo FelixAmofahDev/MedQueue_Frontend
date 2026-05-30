@@ -7,7 +7,7 @@ import '../../widgets/custom_components.dart';
 import '../../widgets/doctor_card.dart';
 
 class DoctorsBrowseScreen extends StatefulWidget {
-  const DoctorsBrowseScreen({Key? key}) : super(key: key);
+  const DoctorsBrowseScreen({super.key});
 
   @override
   State<DoctorsBrowseScreen> createState() => _DoctorsBrowseScreenState();

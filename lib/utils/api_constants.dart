@@ -4,7 +4,7 @@ class ApiConstants {
   // For Android Emulator: use 10.0.2.2 (special alias for host machine)
   // For iOS Simulator: use localhost
   // For Physical Device: use your computer's IP address (e.g., 192.168.x.x)
-  static const String baseUrl = 'http://10.0.2.2:8000/api/v1';
+  static const String baseUrl = 'http://100.66.28.124:8000/api/v1';
 
   // Authentication Endpoints
   static const String registerEndpoint = '/auth/register/';

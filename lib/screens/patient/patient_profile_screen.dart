@@ -5,7 +5,7 @@ import '../../utils/app_colors.dart';
 import '../../widgets/custom_components.dart';
 
 class PatientProfileScreen extends StatefulWidget {
-  const PatientProfileScreen({Key? key}) : super(key: key);
+  const PatientProfileScreen({super.key});
 
   @override
   State<PatientProfileScreen> createState() => _PatientProfileScreenState();
@@ -517,7 +517,7 @@ class _ModernInfoTile extends StatelessWidget {
                   ],
                 ),
               ),
-              if (valueWidget != null) valueWidget!,
+              ?valueWidget,
             ],
           ),
         ),
