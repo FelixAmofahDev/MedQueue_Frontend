@@ -31,36 +31,37 @@ class HomeContentScreen extends StatelessWidget {
         ),
         foregroundColor: Colors.white,
         centerTitle: true,
-        title: Column(
-          children: [
-            const Text(
-              'MedQueue GH',
-              style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3),
-            ),
-           
-          ],
+        title: const Text(
+          'MedQueue GH',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
+          ),
         ),
-       
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Hero Welcome Banner ──────────────────────────────
-            Consumer<AuthService>(
-              builder: (context, authService, _) {
-                final user = authService.currentUser;
-                return Container(
+      body: Consumer2<AuthService, AppointmentService>(
+        builder: (context, authService, appointmentService, _) {
+          final user = authService.currentUser;
+          final upcomingAppointments =
+              appointmentService.upcomingAppointments.take(3).toList();
+
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Hero Welcome Banner ──────────────────────────
+                Container(
                   width: double.infinity,
                   margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [AppColors.primaryBlue, AppColors.primaryGreen],
+                      colors: [
+                        AppColors.primaryBlue,
+                        AppColors.primaryGreen,
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -76,7 +77,6 @@ class HomeContentScreen extends StatelessWidget {
                   ),
                   child: Stack(
                     children: [
-                      // Decorative circle
                       Positioned(
                         right: -20,
                         top: -20,
@@ -104,38 +104,35 @@ class HomeContentScreen extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
+                          // Online badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.circle,
+                                  color: Color(0xFF90EE90),
+                                  size: 8,
                                 ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(20),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Online',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.circle,
-                                      color: Color(0xFF90EE90),
-                                      size: 8,
-                                    ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      'Online',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 12),
                           Text(
@@ -157,149 +154,74 @@ class HomeContentScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // Health stats row
-                          Consumer2<AppointmentService, QueueService>(
-                            builder:
-                                (context, appointmentService, queueService, _) {
-                                  // Get next appointment
-                                  final upcomingAppointments =
-                                      appointmentService.upcomingAppointments;
-                                  String nextApptText = 'No appt';
-                                  if (upcomingAppointments.isNotEmpty) {
-                                    final nextAppt = upcomingAppointments.first;
-                                    final apptDate = DateTime.parse(
-                                      nextAppt.appointmentDate,
-                                    );
-                                    final today = DateTime.now();
-                                    final tomorrow = DateTime(
-                                      today.year,
-                                      today.month,
-                                      today.day + 1,
-                                    );
+                          // Stat chips
+                          Consumer<QueueService>(
+                            builder: (context, queueService, _) {
+                              String nextApptText = 'No appt';
+                              if (upcomingAppointments.isNotEmpty) {
+                                final nextAppt =
+                                    upcomingAppointments.first;
+                                final apptDate = DateTime.parse(
+                                  nextAppt.appointmentDate,
+                                );
+                                final today = DateTime.now();
+                                final tomorrow = DateTime(
+                                  today.year,
+                                  today.month,
+                                  today.day + 1,
+                                );
+                                if (apptDate.year == today.year &&
+                                    apptDate.month == today.month &&
+                                    apptDate.day == today.day) {
+                                  nextApptText = 'Today';
+                                } else if (apptDate.year ==
+                                        tomorrow.year &&
+                                    apptDate.month == tomorrow.month &&
+                                    apptDate.day == tomorrow.day) {
+                                  nextApptText = 'Tomorrow';
+                                } else {
+                                  nextApptText =
+                                      DateFormat('MMM d').format(apptDate);
+                                }
+                              }
 
-                                    if (apptDate.year == today.year &&
-                                        apptDate.month == today.month &&
-                                        apptDate.day == today.day) {
-                                      nextApptText = 'Today';
-                                    } else if (apptDate.year == tomorrow.year &&
-                                        apptDate.month == tomorrow.month &&
-                                        apptDate.day == tomorrow.day) {
-                                      nextApptText = 'Tomorrow';
-                                    } else {
-                                      nextApptText = DateFormat(
-                                        'MMM d',
-                                      ).format(apptDate);
-                                    }
-                                  }
+                              final queueNumber = queueService
+                                      .currentQueueEntry?.queueNumber ??
+                                  0;
+                              final queueText = queueNumber > 0
+                                  ? '#$queueNumber'
+                                  : 'Not in queue';
 
-                                  // Get queue number
-                                  final queueNumber =
-                                      queueService
-                                          .currentQueueEntry
-                                          ?.queueNumber ??
-                                      0;
-                                  String queueText = queueNumber > 0
-                                      ? '#$queueNumber'
-                                      : 'Not in queue';
-
-                                  return Row(
-                                    children: [
-                                      _StatChip(
-                                        icon: Icons.calendar_today_rounded,
-                                        label: 'Next Appt',
-                                        value: nextApptText,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      _StatChip(
-                                        icon: Icons.queue_rounded,
-                                        label: 'Queue',
-                                        value: queueText,
-                                      ),
-                                    ],
-                                  );
-                                },
+                              return Row(
+                                children: [
+                                  _StatChip(
+                                    icon: Icons.calendar_today_rounded,
+                                    label: 'Next Appt',
+                                    value: nextApptText,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  _StatChip(
+                                    icon: Icons.queue_rounded,
+                                    label: 'Queue',
+                                    value: queueText,
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                         ],
                       ),
                     ],
                   ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 28),
-
-            // ── Quick Actions ────────────────────────────────────
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Quick Actions',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textDark,
-                  letterSpacing: -0.3,
                 ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio:
-                    1.25, // ← was 1.45, now taller for better breathing room
 
-                children: [
-                  _ModernQuickAction(
-                    icon: Icons.calendar_month_rounded,
-                    label: 'Book\nAppointment',
-                    color: AppColors.primaryBlue,
-                    bgColor: const Color(0xFFEBF4FF),
-                    onTap: () =>
-                        Navigator.of(context).pushNamed('/patient/doctors'),
-                  ),
-                  _ModernQuickAction(
-                    icon: Icons.queue_rounded,
-                    label: 'Queue\nStatus',
-                    color: AppColors.primaryGreen,
-                    bgColor: const Color(0xFFE8F8F2),
-                    onTap: () =>
-                        Navigator.of(context).pushNamed('/queue-tracker'),
-                  ),
-                  _ModernQuickAction(
-                    icon: Icons.smart_toy_rounded,
-                    label: 'AI Health\nAssistant',
-                    color: AppColors.warningOrange,
-                    bgColor: const Color(0xFFFFF5E6),
-                    onTap: () =>
-                        Navigator.of(context).pushNamed('/patient-chatbot'),
-                  ),
-                  _ModernQuickAction(
-                    icon: Icons.emergency_rounded,
-                    label: 'Emergency\nSOS',
-                    color: AppColors.emergencyRed,
-                    bgColor: const Color(0xFFFFECEB),
-                    onTap: () =>
-                        Navigator.of(context).pushNamed('/emergency-sos'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 28),
+                const SizedBox(height: 28),
 
-            // ── Upcoming Appointments ────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Upcoming Appointments',
+                // ── Quick Actions ────────────────────────────────
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Quick Actions',
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
@@ -307,81 +229,202 @@ class HomeContentScreen extends StatelessWidget {
                       letterSpacing: -0.3,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: onViewAll,
-                    child: const Text(
-                      'See all',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                ),
+                const SizedBox(height: 14),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 1.25,
+                    children: [
+                      _ModernQuickAction(
+                        icon: Icons.calendar_month_rounded,
+                        label: 'Book\nAppointment',
                         color: AppColors.primaryBlue,
+                        bgColor: const Color(0xFFEBF4FF),
+                        onTap: () => Navigator.of(context)
+                            .pushNamed('/patient/doctors'),
                       ),
-                    ),
+                      _ModernQuickAction(
+                        icon: Icons.queue_rounded,
+                        label: 'Queue\nStatus',
+                        color: AppColors.primaryGreen,
+                        bgColor: const Color(0xFFE8F8F2),
+                        onTap: () => Navigator.of(context)
+                            .pushNamed('/queue-tracker'),
+                      ),
+                      _ModernQuickAction(
+                        icon: Icons.smart_toy_rounded,
+                        label: 'AI Health\nAssistant',
+                        color: AppColors.warningOrange,
+                        bgColor: const Color(0xFFFFF5E6),
+                        onTap: () => Navigator.of(context)
+                            .pushNamed('/patient-chatbot'),
+                      ),
+                      _ModernQuickAction(
+                        icon: Icons.emergency_rounded,
+                        label: 'Emergency\nSOS',
+                        color: AppColors.emergencyRed,
+                        bgColor: const Color(0xFFFFECEB),
+                        onTap: () => Navigator.of(context)
+                            .pushNamed('/emergency-sos'),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Consumer<AppointmentService>(
-              builder: (context, appointmentService, _) {
-                final appointments = appointmentService.appointments
-                    .take(3)
-                    .toList();
+                ),
 
-                if (appointments.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.backgroundLight,
-                        border: Border.all(
-                          color: AppColors.textLight,
-                          width: 1.5,
+                const SizedBox(height: 28),
+
+                // ── Upcoming Appointments ────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Upcoming Appointments',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textDark,
+                          letterSpacing: -0.3,
                         ),
-                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Center(
-                        child: Text(
-                          'No upcoming appointments',
+                      GestureDetector(
+                        onTap: onViewAll,
+                        child: const Text(
+                          'See all',
                           style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textGray,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryBlue,
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: appointments.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      return AppointmentCard(
-                        appointment: appointments[index],
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            '/patient/appointment-detail',
-                            arguments: appointments[index].id,
-                          );
-                        },
-                      );
-                    },
+                    ],
                   ),
-                );
-              },
+                ),
+                const SizedBox(height: 12),
+
+                // Empty state
+                if (upcomingAppointments.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 32,
+                        horizontal: 24,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.borderColor.withOpacity(0.5),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryBlue.withOpacity(0.08),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.calendar_today_rounded,
+                              color: AppColors.primaryBlue,
+                              size: 32,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'No upcoming appointments',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Book one to get started',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textGray,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          GestureDetector(
+                            onTap: () => Navigator.of(context)
+                                .pushNamed('/patient/doctors'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    AppColors.primaryBlue,
+                                    AppColors.primaryGreen,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primaryBlue
+                                        .withOpacity(0.3),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Text(
+                                'Book Now',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  // Appointments list
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: upcomingAppointments.length,
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(height: 8),
+                      itemBuilder: (context, index) => AppointmentCard(
+                        appointment: upcomingAppointments[index],
+                        onTap: () => Navigator.of(context).pushNamed(
+                          '/patient/appointment-detail',
+                          arguments: upcomingAppointments[index].id,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                const SizedBox(height: 28),
+              ],
             ),
-            const SizedBox(height: 28),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

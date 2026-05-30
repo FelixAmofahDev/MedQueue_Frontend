@@ -86,7 +86,14 @@ class AppointmentService extends ChangeNotifier {
         
         // Filter out nulls and add to list
         final validAppointments = detailedAppointments.whereType<Appointment>().toList();
-        _appointments.addAll(validAppointments);
+        for (final apt in validAppointments) {
+  final index = _appointments.indexWhere((a) => a.id == apt.id);
+  if (index != -1) {
+    _appointments[index] = apt; // update existing
+  } else {
+    _appointments.add(apt);     // add new only
+  }
+}
         
         _isLoading = false;
         notifyListeners();
