@@ -11,22 +11,28 @@ class AppointmentService extends ChangeNotifier {
   int get appointmentCount => _appointments.length;
 
   // Getters
-  List<Appointment> get appointments => _appointments..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
+  List<Appointment> get appointments =>
+      _appointments
+        ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   Map<String, dynamic>? get fieldErrors => _fieldErrors;
 
   //upcoming appointments sort by date ascending, past appointments sort by date descending
-  List<Appointment> get upcomingAppointments => _appointments
-      .where((a) => a.isUpcoming && a.status != 'cancelled')
-      .toList()
-    ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
+  List<Appointment> get upcomingAppointments =>
+      _appointments
+          .where(
+            (a) =>
+                a.isUpcoming &&
+                (a.status == 'confirmed' || a.status == 'rescheduled'),
+          )
+          .toList()
+        ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
   //
 
-  List<Appointment> get pastAppointments => _appointments
-      .where((a) => a.isPast || a.status == 'completed')
-      .toList()
-    ..sort((a, b) => b.appointmentDate.compareTo(a.appointmentDate));
+  List<Appointment> get pastAppointments =>
+      _appointments.where((a) => a.isPast || a.status == 'completed').toList()
+        ..sort((a, b) => b.appointmentDate.compareTo(a.appointmentDate));
 
   /// Fetch all user's appointments (patient/doctor specific based on JWT token role)
   /// Optional filters: status, from_date, to_date, doctor_id, page, page_size
@@ -78,28 +84,34 @@ class AppointmentService extends ChangeNotifier {
 
       if (response.isSuccess && response.data != null) {
         _appointments.clear();
-        
+
         // Fetch full details for each appointment in parallel
-        final appointmentIds = response.data!.appointments.map((a) => a.id).toList();
-        final detailFutures = appointmentIds.map((id) => _fetchDetailQuietly(id)).toList();
+        final appointmentIds = response.data!.appointments
+            .map((a) => a.id)
+            .toList();
+        final detailFutures = appointmentIds
+            .map((id) => _fetchDetailQuietly(id))
+            .toList();
         final detailedAppointments = await Future.wait(detailFutures);
-        
+
         // Filter out nulls and add to list
-        final validAppointments = detailedAppointments.whereType<Appointment>().toList();
+        final validAppointments = detailedAppointments
+            .whereType<Appointment>()
+            .toList();
         for (final apt in validAppointments) {
-  final index = _appointments.indexWhere((a) => a.id == apt.id);
-  if (index != -1) {
-    _appointments[index] = apt; // update existing
-  } else {
-    _appointments.add(apt);     // add new only
-  }
-}
-        
+          final index = _appointments.indexWhere((a) => a.id == apt.id);
+          if (index != -1) {
+            _appointments[index] = apt; // update existing
+          } else {
+            _appointments.add(apt); // add new only
+          }
+        }
+
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        _errorMessage = response.message ;
+        _errorMessage = response.message;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
@@ -158,7 +170,7 @@ class AppointmentService extends ChangeNotifier {
         notifyListeners();
         return response.data;
       } else {
-        _errorMessage = response.message ;
+        _errorMessage = response.message;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
@@ -187,10 +199,7 @@ class AppointmentService extends ChangeNotifier {
     try {
       final response = await ApiClient.postWithAuth<Appointment>(
         '/auth/book/',
-        body: {
-          'slot_id': slotId,
-          if (reason.isNotEmpty) 'reason': reason,
-        },
+        body: {'slot_id': slotId, if (reason.isNotEmpty) 'reason': reason},
         parser: (json) => Appointment.fromJson(json),
       );
 
@@ -200,7 +209,7 @@ class AppointmentService extends ChangeNotifier {
         notifyListeners();
         return response.data;
       } else {
-        _errorMessage = response.message ;
+        _errorMessage = response.message;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
@@ -246,7 +255,7 @@ class AppointmentService extends ChangeNotifier {
         notifyListeners();
         return response.data;
       } else {
-        _errorMessage = response.message ;
+        _errorMessage = response.message;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
@@ -294,7 +303,7 @@ class AppointmentService extends ChangeNotifier {
         notifyListeners();
         return response.data;
       } else {
-        _errorMessage = response.message ;
+        _errorMessage = response.message;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
@@ -325,10 +334,7 @@ class AppointmentService extends ChangeNotifier {
     try {
       final response = await ApiClient.postWithAuth<Appointment>(
         '/auth/$appointmentId/mark/',
-        body: {
-          'new_status': newStatus,
-          if (notes.isNotEmpty) 'notes': notes,
-        },
+        body: {'new_status': newStatus, if (notes.isNotEmpty) 'notes': notes},
         parser: (json) => Appointment.fromJson(json),
       );
 
@@ -342,7 +348,7 @@ class AppointmentService extends ChangeNotifier {
         notifyListeners();
         return response.data;
       } else {
-        _errorMessage = response.message ;
+        _errorMessage = response.message;
         _fieldErrors = response.errors;
         _isLoading = false;
         notifyListeners();
@@ -403,9 +409,11 @@ class AppointmentListResponse {
     return AppointmentListResponse(
       appointments: results != null
           ? (results)
-              .map((apt) =>
-                  Appointment.fromListJson(apt as Map<String, dynamic>))
-              .toList()
+                .map(
+                  (apt) =>
+                      Appointment.fromListJson(apt as Map<String, dynamic>),
+                )
+                .toList()
           : [],
       total: json['count'] as int? ?? 0,
       page: json['page'] as int? ?? 1,

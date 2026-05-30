@@ -208,7 +208,7 @@ class DoctorCard extends StatelessWidget {
               if (doctor.hasWhatsApp) ...[
                 const SizedBox(height: 12),
                 SizedBox(
-                  width: double.infinity,
+                  width: 100,
                   child: OutlinedButton.icon(
                     onPressed: () => WhatsAppService.openWhatsApp(
                       doctor.whatsappNumber,
@@ -224,7 +224,7 @@ class DoctorCard extends StatelessWidget {
                     ),
                     icon: const Icon(Icons.chat_rounded, size: 18),
                     label: const Text(
-                      'WhatsApp',
+                      'Chat',
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
