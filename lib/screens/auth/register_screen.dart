@@ -7,7 +7,6 @@ import '../../routes/app_routes.dart';
 
 class RegisterScreen extends StatefulWidget {
   final String? role;
-
   const RegisterScreen({super.key, this.role});
 
   @override
@@ -18,7 +17,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   late String _selectedRole;
 
-  // Controllers
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -63,29 +61,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _handleRegister(AuthService authService) async {
     if (!_formKey.currentState!.validate()) return;
-
     final success = await authService.register(
       username: _usernameController.text.trim(),
       email: _emailController.text.trim(),
       phoneNumber: _phoneController.text.trim(),
-      whatsappNumber: _whatsappController.text.trim().isEmpty ? null : _whatsappController.text.trim(),
+      whatsappNumber: _whatsappController.text.isEmpty
+          ? null
+          : _whatsappController.text.trim(),
       password: _passwordController.text,
       passwordConfirm: _passwordConfirmController.text,
       firstName: _firstNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
       role: _selectedRole,
       gender: _selectedGender,
-      dateOfBirth: _dateOfBirthController.text.isEmpty ? null : _dateOfBirthController.text,
-      address: _addressController.text.isEmpty ? null : _addressController.text.trim(),
-      bloodGroup: _bloodGroupController.text.isEmpty ? null : _bloodGroupController.text,
-      emergencyContactName: _emergencyContactController.text.isEmpty ? null : _emergencyContactController.text.trim(),
-      emergencyContactPhone: _emergencyPhoneController.text.isEmpty ? null : _emergencyPhoneController.text.trim(),
+      dateOfBirth: _dateOfBirthController.text.isEmpty
+          ? null
+          : _dateOfBirthController.text,
+      address: _addressController.text.isEmpty
+          ? null
+          : _addressController.text.trim(),
+      bloodGroup: _bloodGroupController.text.isEmpty
+          ? null
+          : _bloodGroupController.text,
+      emergencyContactName: _emergencyContactController.text.isEmpty
+          ? null
+          : _emergencyContactController.text.trim(),
+      emergencyContactPhone: _emergencyPhoneController.text.isEmpty
+          ? null
+          : _emergencyPhoneController.text.trim(),
     );
-
-    if (success && mounted) {
-      // Show OTP screen
-      _showOTPDialog(authService);
-    }
+    if (success && mounted) _showOTPDialog(authService);
   }
 
   void _showOTPDialog(AuthService authService) {
@@ -95,9 +100,108 @@ class _RegisterScreenState extends State<RegisterScreen> {
       builder: (context) => _OTPDialog(
         phoneNumber: _phoneController.text.trim(),
         onSuccess: () {
-          Navigator.pop(context); // Close OTP dialog
+          Navigator.pop(context);
           Navigator.pushReplacementNamed(context, AppRoutes.patientHome);
         },
+      ),
+    );
+  }
+
+  // ── FIELD BUILDER ─────────────────────────────────────────────
+  Widget _field({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool enabled = true,
+    bool readOnly = false,
+    bool obscure = false,
+    Widget? suffix,
+    TextInputType? keyboard,
+    int maxLines = 1,
+    String? hint,
+    String? errorText,
+    String? Function(String?)? validator,
+    VoidCallback? onTap,
+  }) {
+    return TextFormField(
+      controller: controller,
+      enabled: enabled,
+      readOnly: readOnly,
+      obscureText: obscure,
+      keyboardType: keyboard,
+      maxLines: maxLines,
+      onTap: onTap,
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        errorText: errorText,
+        prefixIcon: Icon(icon, size: 20, color: AppColors.textGray),
+        suffixIcon: suffix,
+        filled: true,
+        fillColor: Colors.white,
+        labelStyle:
+            const TextStyle(color: AppColors.textGray, fontSize: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide:
+              BorderSide(color: AppColors.borderColor.withOpacity(0.6)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide:
+              const BorderSide(color: AppColors.primaryBlue, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.errorRed),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide:
+              const BorderSide(color: AppColors.errorRed, width: 2),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+    );
+  }
+
+  Widget _sectionHeader(String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: AppColors.primaryBlue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Icon(icon, size: 15, color: AppColors.primaryBlue),
+          ),
+          const SizedBox(width: 9),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textDark,
+              letterSpacing: 0.2,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Container(
+              height: 1,
+              color: AppColors.borderColor.withOpacity(0.5),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -107,420 +211,566 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text('Create Account'),
-        centerTitle: true,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primaryBlue, AppColors.primaryGreen],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        title: const Column(
+          children: [
+            Text(
+              'Create Account',
+              style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3),
+            ),
+            Text(
+              'Join MedQueue GH',
+              style: TextStyle(fontSize: 11, color: Colors.white70),
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: Consumer<AuthService>(
           builder: (context, authService, _) {
             return SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Register',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
-                        ),
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                children: [
+                  // ── Hero header strip ──────────────────────
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primaryBlue,
+                          AppColors.primaryGreen
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Create your patient account',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textGray,
-                        ),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(32),
+                        bottomRight: Radius.circular(32),
                       ),
-                      const SizedBox(height: 20),
-                      // Error Message
-                      if (authService.errorMessage != null)
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.errorRed.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: AppColors.errorRed.withOpacity(0.3),
+                    ),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          right: -20,
+                          top: -10,
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.07),
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                color: AppColors.errorRed,
-                                size: 18,
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  authService.errorMessage ?? '',
-                                  style: const TextStyle(
-                                    color: AppColors.errorRed,
-                                    fontSize: 13,
+                              child: const Icon(
+                                Icons.health_and_safety_rounded,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            const Text(
+                              'Patient Registration',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.4,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Fill in your details to get started with MedQueue',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ── Form body ──────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // ── Error banner ─────────────────
+                          if (authService.errorMessage != null) ...[
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppColors.errorRed.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                    color: AppColors.errorRed
+                                        .withOpacity(0.25)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.error_outline_rounded,
+                                      color: AppColors.errorRed, size: 18),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      authService.errorMessage!,
+                                      style: const TextStyle(
+                                          color: AppColors.errorRed,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500),
+                                    ),
                                   ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+
+                          // ── Account Info ─────────────────
+                          _sectionHeader(
+                              'Account Information', Icons.manage_accounts_rounded),
+                          _field(
+                            controller: _usernameController,
+                            label: 'Username',
+                            icon: Icons.alternate_email_rounded,
+                            enabled: !authService.isLoading,
+                            errorText: authService.fieldErrors?['username'] != null
+                                ? (authService.fieldErrors!['username'] as List).first
+                                : null,
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Username is required';
+                              if (v.length < 3) return 'At least 3 characters';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          _field(
+                            controller: _emailController,
+                            label: 'Email Address',
+                            icon: Icons.mail_outline_rounded,
+                            keyboard: TextInputType.emailAddress,
+                            enabled: !authService.isLoading,
+                            errorText: authService.fieldErrors?['email'] != null
+                                ? (authService.fieldErrors!['email'] as List).first
+                                : null,
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Email is required';
+                              if (!v.contains('@')) return 'Enter a valid email';
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // ── Personal Info ─────────────────
+                          _sectionHeader(
+                              'Personal Details', Icons.person_rounded),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _field(
+                                  controller: _firstNameController,
+                                  label: 'First Name',
+                                  icon: Icons.badge_rounded,
+                                  enabled: !authService.isLoading,
+                                  validator: (v) => v == null || v.isEmpty
+                                      ? 'Required'
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _field(
+                                  controller: _lastNameController,
+                                  label: 'Last Name',
+                                  icon: Icons.badge_rounded,
+                                  enabled: !authService.isLoading,
+                                  validator: (v) => v == null || v.isEmpty
+                                      ? 'Required'
+                                      : null,
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      if (authService.errorMessage != null)
-                        const SizedBox(height: 16),
-                      // Username
-                      TextFormField(
-                        controller: _usernameController,
-                        enabled: !authService.isLoading,
-                        decoration: InputDecoration(
-                          labelText: 'Username',
-                          prefixIcon: const Icon(Icons.person),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          errorText: authService.fieldErrors?['username'] != null
-                              ? (authService.fieldErrors!['username'] as List).first
-                              : null,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Username is required';
-                          }
-                          if (value.length < 3) {
-                            return 'Username must be at least 3 characters';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      // Email
-                      TextFormField(
-                        controller: _emailController,
-                        enabled: !authService.isLoading,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: const Icon(Icons.email),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          errorText: authService.fieldErrors?['email'] != null
-                              ? (authService.fieldErrors!['email'] as List).first
-                              : null,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Email is required';
-                          }
-                          if (!value.contains('@')) {
-                            return 'Please enter a valid email';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      // Phone
-                      TextFormField(
-                        controller: _phoneController,
-                        enabled: !authService.isLoading,
-                        keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(
-                          labelText: 'Phone Number (e.g., +233201234567)',
-                          prefixIcon: const Icon(Icons.phone),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          errorText: authService.fieldErrors?['phone_number'] != null
-                              ? (authService.fieldErrors!['phone_number'] as List).first
-                              : null,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Phone number is required';
-                          }
-                          if (value.length < 10) {
-                            return 'Please enter a valid phone number';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      // WhatsApp Number
-                      TextFormField(
-                        controller: _whatsappController,
-                        enabled: !authService.isLoading,
-                        keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(
-                          labelText: 'WhatsApp Number (optional)',
-                          prefixIcon: const Icon(Icons.chat_bubble_outline),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // First Name
-                      TextFormField(
-                        controller: _firstNameController,
-                        readOnly: authService.isLoading,
-                        decoration: InputDecoration(
-                          labelText: 'First Name',
-                          prefixIcon: const Icon(Icons.person_outline),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'First name is required';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      // Last Name
-                      TextFormField(
-                        controller: _lastNameController,
-                        readOnly: authService.isLoading,
-                        decoration: InputDecoration(
-                          labelText: 'Last Name',
-                          prefixIcon: const Icon(Icons.person_outline),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Last name is required';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      // Gender Dropdown
-                      DropdownButtonFormField(
-                        initialValue: _selectedGender,
-                        decoration: InputDecoration(
-                          labelText: 'Gender',
-                          prefixIcon: const Icon(Icons.wc),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'unspecified', child: Text('Not specified')),
-                          DropdownMenuItem(value: 'male', child: Text('Male')),
-                          DropdownMenuItem(value: 'female', child: Text('Female')),
-                          DropdownMenuItem(value: 'other', child: Text('Other')),
-                        ],
-                        onChanged: (value) {
-                          setState(() => _selectedGender = value ?? 'unspecified');
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      // Date of Birth
-                      TextFormField(
-                        controller: _dateOfBirthController,
-                        enabled: !authService.isLoading,
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          labelText: 'Date of Birth (optional)',
-                          prefixIcon: const Icon(Icons.calendar_today),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onTap: () async {
-                          final date = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime(2000),
-                            firstDate: DateTime(1950),
-                            lastDate: DateTime.now(),
-                          );
-                          if (date != null) {
-                            _dateOfBirthController.text = date.toString().split(' ')[0];
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      // Address
-                      TextFormField(
-                        controller: _addressController,
-                        enabled: !authService.isLoading,
-                        maxLines: 2,
-                        decoration: InputDecoration(
-                          labelText: 'Address (optional)',
-                          prefixIcon: const Icon(Icons.location_on),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // Patient-specific fields
-                      if (_selectedRole == 'patient') ...[
-                        // Blood Group
-                        DropdownButtonFormField(
-                          initialValue: _bloodGroupController.text.isEmpty ? null : _bloodGroupController.text,
-                          decoration: InputDecoration(
-                            labelText: 'Blood Group (optional)',
-                            prefixIcon: const Icon(Icons.bloodtype),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
+                          const SizedBox(height: 12),
+
+                          // Gender dropdown
+                          DropdownButtonFormField<String>(
+                            value: _selectedGender,
+                            decoration: InputDecoration(
+                              labelText: 'Gender',
+                              prefixIcon: const Icon(Icons.wc_rounded,
+                                  size: 20, color: AppColors.textGray),
+                              filled: true,
+                              fillColor: Colors.white,
+                              labelStyle: const TextStyle(
+                                  color: AppColors.textGray, fontSize: 14),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                    color: AppColors.borderColor
+                                        .withOpacity(0.6)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(
+                                    color: AppColors.primaryBlue,
+                                    width: 2),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 16),
                             ),
+                            items: const [
+                              DropdownMenuItem(
+                                  value: 'unspecified',
+                                  child: Text('Not specified')),
+                              DropdownMenuItem(
+                                  value: 'male', child: Text('Male')),
+                              DropdownMenuItem(
+                                  value: 'female', child: Text('Female')),
+                              DropdownMenuItem(
+                                  value: 'other', child: Text('Other')),
+                            ],
+                            onChanged: (v) => setState(
+                                () => _selectedGender = v ?? 'unspecified'),
                           ),
-                          items: const [
-                            DropdownMenuItem(value: 'O+', child: Text('O+')),
-                            DropdownMenuItem(value: 'O-', child: Text('O-')),
-                            DropdownMenuItem(value: 'A+', child: Text('A+')),
-                            DropdownMenuItem(value: 'A-', child: Text('A-')),
-                            DropdownMenuItem(value: 'B+', child: Text('B+')),
-                            DropdownMenuItem(value: 'B-', child: Text('B-')),
-                            DropdownMenuItem(value: 'AB+', child: Text('AB+')),
-                            DropdownMenuItem(value: 'AB-', child: Text('AB-')),
-                          ],
-                          onChanged: (value) {
-                            _bloodGroupController.text = value ?? '';
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        // Emergency Contact Name
-                        TextFormField(
-                          controller: _emergencyContactController,
-                          enabled: !authService.isLoading,
-                          decoration: InputDecoration(
-                            labelText: 'Emergency Contact Name (optional)',
-                            prefixIcon: const Icon(Icons.contacts),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        // Emergency Contact Phone
-                        TextFormField(
-                          controller: _emergencyPhoneController,
-                          enabled: !authService.isLoading,
-                          keyboardType: TextInputType.phone,
-                          decoration: InputDecoration(
-                            labelText: 'Emergency Contact Phone (optional)',
-                            prefixIcon: const Icon(Icons.phone),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-                      // Password
-                      TextFormField(
-                        controller: _passwordController,
-                        enabled: !authService.isLoading,
-                        obscureText: _obscurePassword,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          prefixIcon: const Icon(Icons.lock),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          helperText: 'At least 8 characters, mix of letters and numbers',
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Password is required';
-                          }
-                          if (value.length < 8) {
-                            return 'Password must be at least 8 characters';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      // Confirm Password
-                      TextFormField(
-                        controller: _passwordConfirmController,
-                        enabled: !authService.isLoading,
-                        obscureText: _obscurePasswordConfirm,
-                        decoration: InputDecoration(
-                          labelText: 'Confirm Password',
-                          prefixIcon: const Icon(Icons.lock),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePasswordConfirm ? Icons.visibility_off : Icons.visibility,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePasswordConfirm = !_obscurePasswordConfirm;
-                              });
-                            },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please confirm your password';
-                          }
-                          if (value != _passwordController.text) {
-                            return 'Passwords do not match';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      // Register Button
-                      ElevatedButton(
-                        onPressed: authService.isLoading ? null : () => _handleRegister(authService),
-                        child: authService.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                          const SizedBox(height: 12),
+                          _field(
+                            controller: _dateOfBirthController,
+                            label: 'Date of Birth (optional)',
+                            icon: Icons.cake_rounded,
+                            readOnly: true,
+                            onTap: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime(2000),
+                                firstDate: DateTime(1950),
+                                lastDate: DateTime.now(),
+                                builder: (ctx, child) => Theme(
+                                  data: Theme.of(ctx).copyWith(
+                                    colorScheme: const ColorScheme.light(
+                                      primary: AppColors.primaryBlue,
+                                    ),
+                                  ),
+                                  child: child!,
                                 ),
-                              )
-                            : const Text('Create Account'),
-                      ),
-                      const SizedBox(height: 16),
-                      // Already have account
-                      Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text('Already have an account? '),
-                            TextButton(
-                              onPressed: authService.isLoading
-                                  ? null
-                                  : () {
-                                      Navigator.pushNamed(context, AppRoutes.login);
-                                    },
-                              child: const Text('Sign In'),
+                              );
+                              if (date != null) {
+                                _dateOfBirthController.text =
+                                    date.toString().split(' ')[0];
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          _field(
+                            controller: _addressController,
+                            label: 'Address (optional)',
+                            icon: Icons.location_on_rounded,
+                            maxLines: 2,
+                            enabled: !authService.isLoading,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // ── Contact ───────────────────────
+                          _sectionHeader(
+                              'Contact Details', Icons.contact_phone_rounded),
+                          _field(
+                            controller: _phoneController,
+                            label: 'Phone Number',
+                            hint: '020*******',
+                            icon: Icons.phone_rounded,
+                            keyboard: TextInputType.phone,
+                            enabled: !authService.isLoading,
+                            errorText: authService.fieldErrors?['phone_number'] != null
+                                ? (authService.fieldErrors!['phone_number'] as List).first
+                                : null,
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Phone number is required';
+                              if (v.length < 10) return 'Enter a valid phone number';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          _field(
+                            controller: _whatsappController,
+                            label: 'WhatsApp Number (optional)',
+                            icon: Icons.chat_rounded,
+                            keyboard: TextInputType.phone,
+                            enabled: !authService.isLoading,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // ── Medical Info ──────────────────
+                          _sectionHeader(
+                              'Medical Information', Icons.medical_information_rounded),
+
+                          // Blood Group
+                          DropdownButtonFormField<String>(
+                            value: _bloodGroupController.text.isEmpty
+                                ? null
+                                : _bloodGroupController.text,
+                            decoration: InputDecoration(
+                              labelText: 'Blood Group (optional)',
+                              prefixIcon: const Icon(Icons.bloodtype_rounded,
+                                  size: 20, color: AppColors.textGray),
+                              filled: true,
+                              fillColor: Colors.white,
+                              labelStyle: const TextStyle(
+                                  color: AppColors.textGray, fontSize: 14),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                    color: AppColors.borderColor
+                                        .withOpacity(0.6)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(
+                                    color: AppColors.primaryBlue,
+                                    width: 2),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 16),
                             ),
-                          ],
-                        ),
+                            items: ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
+                                .map((g) => DropdownMenuItem(
+                                    value: g, child: Text(g)))
+                                .toList(),
+                            onChanged: (v) =>
+                                _bloodGroupController.text = v ?? '',
+                          ),
+                          const SizedBox(height: 12),
+                          _field(
+                            controller: _emergencyContactController,
+                            label: 'Emergency Contact Name (optional)',
+                            icon: Icons.contact_emergency_rounded,
+                            enabled: !authService.isLoading,
+                          ),
+                          const SizedBox(height: 12),
+                          _field(
+                            controller: _emergencyPhoneController,
+                            label: 'Emergency Contact Phone (optional)',
+                            icon: Icons.phone_in_talk_rounded,
+                            keyboard: TextInputType.phone,
+                            enabled: !authService.isLoading,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // ── Security ──────────────────────
+                          _sectionHeader(
+                              'Security', Icons.lock_rounded),
+                          _field(
+                            controller: _passwordController,
+                            label: 'Password',
+                            icon: Icons.lock_outline_rounded,
+                            obscure: _obscurePassword,
+                            enabled: !authService.isLoading,
+                            hint: 'At least 8 characters',
+                            suffix: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_rounded
+                                    : Icons.visibility_rounded,
+                                size: 20,
+                                color: AppColors.textGray,
+                              ),
+                              onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword),
+                            ),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Password is required';
+                              if (v.length < 8) return 'At least 8 characters';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          _field(
+                            controller: _passwordConfirmController,
+                            label: 'Confirm Password',
+                            icon: Icons.lock_outline_rounded,
+                            obscure: _obscurePasswordConfirm,
+                            enabled: !authService.isLoading,
+                            suffix: IconButton(
+                              icon: Icon(
+                                _obscurePasswordConfirm
+                                    ? Icons.visibility_off_rounded
+                                    : Icons.visibility_rounded,
+                                size: 20,
+                                color: AppColors.textGray,
+                              ),
+                              onPressed: () => setState(() =>
+                                  _obscurePasswordConfirm =
+                                      !_obscurePasswordConfirm),
+                            ),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Please confirm your password';
+                              if (v != _passwordController.text) return 'Passwords do not match';
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 28),
+
+                          // ── Submit button ─────────────────
+                          GestureDetector(
+                            onTap: authService.isLoading
+                                ? null
+                                : () => _handleRegister(authService),
+                            child: Container(
+                              width: double.infinity,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 16),
+                              decoration: BoxDecoration(
+                                gradient: authService.isLoading
+                                    ? null
+                                    : const LinearGradient(
+                                        colors: [
+                                          AppColors.primaryBlue,
+                                          AppColors.primaryGreen,
+                                        ],
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                      ),
+                                color: authService.isLoading
+                                    ? AppColors.backgroundGray
+                                    : null,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: authService.isLoading
+                                    ? null
+                                    : [
+                                        BoxShadow(
+                                          color: AppColors.primaryBlue
+                                              .withOpacity(0.35),
+                                          blurRadius: 16,
+                                          spreadRadius: -2,
+                                          offset: const Offset(0, 6),
+                                        ),
+                                      ],
+                              ),
+                              child: Center(
+                                child: authService.isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  AppColors.textGray),
+                                        ),
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                              Icons.health_and_safety_rounded,
+                                              color: Colors.white,
+                                              size: 18),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'Create My Account',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // ── Sign in link ──────────────────
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                  color:
+                                      AppColors.borderColor.withOpacity(0.5)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'Already have an account?',
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textGray),
+                                ),
+                                const SizedBox(width: 6),
+                                GestureDetector(
+                                  onTap: authService.isLoading
+                                      ? null
+                                      : () => Navigator.pushNamed(
+                                          context, AppRoutes.login),
+                                  child: const Text(
+                                    'Sign In',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.primaryBlue,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 28),
+                        ],
                       ),
-                      const SizedBox(height: 20),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             );
           },
@@ -583,66 +833,252 @@ class _OTPDialogState extends State<_OTPDialog> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Verify Phone Number'),
-      content: Consumer<AuthService>(
+ @override
+Widget build(BuildContext context) {
+  return Dialog(
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+    backgroundColor: Colors.white,
+    child: Padding(
+      padding: const EdgeInsets.all(28),
+      child: Consumer<AuthService>(
         builder: (context, authService, _) {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Enter the 6-digit code sent to ${widget.phoneNumber}',
-                style: const TextStyle(color: AppColors.textGray),
+              // ── Icon header ──────────────────────────────
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primaryBlue, AppColors.primaryGreen],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryBlue.withOpacity(0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.verified_rounded,
+                  color: Colors.white,
+                  size: 30,
+                ),
               ),
-              const SizedBox(height: 16),
-              if (authService.errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(
-                    authService.errorMessage!,
-                    style: const TextStyle(color: AppColors.errorRed),
+              const SizedBox(height: 18),
+
+              // ── Title & subtitle ─────────────────────────
+              const Text(
+                'Verify Phone Number',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDark,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Enter the 6-digit code sent to',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textGray,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                widget.phoneNumber,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryBlue,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // ── Error banner ─────────────────────────────
+              if (authService.errorMessage != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.errorRed.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppColors.errorRed.withOpacity(0.25)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline_rounded,
+                          color: AppColors.errorRed, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          authService.errorMessage!,
+                          style: const TextStyle(
+                            color: AppColors.errorRed,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(height: 16),
+              ],
+
+              // ── OTP input ────────────────────────────────
               TextField(
                 controller: _otpController,
                 enabled: !authService.isLoading,
                 maxLength: 6,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 20, letterSpacing: 2),
-                decoration: InputDecoration(
-                  hintText: '000000',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 10,
+                  color: AppColors.textDark,
                 ),
+                decoration: InputDecoration(
+                  counterText: '',
+                  hintText: '------',
+                  hintStyle: TextStyle(
+                    fontSize: 24,
+                    letterSpacing: 10,
+                    color: AppColors.textLight,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.backgroundLight,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                        color: AppColors.primaryBlue, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 18),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // ── Buttons ──────────────────────────────────
+              Row(
+                children: [
+                  // Cancel
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          color: AppColors.backgroundGray,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textGray,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Verify
+                  Expanded(
+                    flex: 2,
+                    child: GestureDetector(
+                      onTap: authService.isLoading ? null : _handleVerify,
+                      child: Container(
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          gradient: authService.isLoading
+                              ? null
+                              : const LinearGradient(
+                                  colors: [
+                                    AppColors.primaryBlue,
+                                    AppColors.primaryGreen,
+                                  ],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                          color: authService.isLoading
+                              ? AppColors.backgroundGray
+                              : null,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: authService.isLoading
+                              ? null
+                              : [
+                                  BoxShadow(
+                                    color: AppColors.primaryBlue
+                                        .withOpacity(0.35),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                        ),
+                        child: Center(
+                          child: authService.isLoading
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor:
+                                        AlwaysStoppedAnimation<Color>(
+                                            AppColors.textGray),
+                                  ),
+                                )
+                              : const Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.check_circle_rounded,
+                                        color: Colors.white, size: 17),
+                                    SizedBox(width: 7),
+                                    Text(
+                                      'Verify',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           );
         },
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        Consumer<AuthService>(
-          builder: (context, authService, _) {
-            return ElevatedButton(
-              onPressed: authService.isLoading ? null : _handleVerify,
-              child: authService.isLoading
-                  ? const SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Verify'),
-            );
-          },
-        ),
-      ],
-    );
-  }
+    ),
+  );
+}
 }

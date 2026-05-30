@@ -54,6 +54,20 @@ class ApiClient {
     );
   }
 
+  /// Perform a PATCH request with authentication
+  static Future<ApiResponse<T>> patchWithAuth<T>(
+    String endpoint, {
+    required Map<String, dynamic> body,
+    required T Function(Map<String, dynamic>) parser,
+  }) async {
+    return _performAuthenticatedRequest(
+      method: 'PATCH',
+      endpoint: endpoint,
+      body: body,
+      parser: parser,
+    );
+  }
+
   /// Perform a POST request without authentication
   static Future<ApiResponse<T>> post<T>(
     String endpoint, {
@@ -160,6 +174,12 @@ class ApiClient {
         ).timeout(ApiConstants.apiTimeout);
       } else if (method == 'PUT') {
         response = await http.put(
+          uri,
+          headers: headers,
+          body: jsonEncode(body),
+        ).timeout(ApiConstants.apiTimeout);
+      } else if (method == 'PATCH') {
+        response = await http.patch(
           uri,
           headers: headers,
           body: jsonEncode(body),

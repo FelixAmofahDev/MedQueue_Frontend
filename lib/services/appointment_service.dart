@@ -7,6 +7,8 @@ class AppointmentService extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   Map<String, dynamic>? _fieldErrors;
+  //get number of appoinntments
+  int get appointmentCount => _appointments.length;
 
   // Getters
   List<Appointment> get appointments => _appointments..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));

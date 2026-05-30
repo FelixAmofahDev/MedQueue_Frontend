@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
 import '../../utils/app_colors.dart';
+import 'package:medqueue_frontend/screens/doctor/edit_doctor_profile_screen.dart';
 import '../../widgets/custom_components.dart';
 
 class DoctorProfileScreen extends StatefulWidget {
@@ -16,7 +17,6 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       backgroundColor: AppColors.backgroundLight,
       body: Consumer<AuthService>(
         builder: (context, authService, _) {
@@ -307,7 +307,15 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                     children: [
                       // Edit Profile
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const DoctorEditProfileScreen(),
+                            ),
+                          );
+                        },
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 16),

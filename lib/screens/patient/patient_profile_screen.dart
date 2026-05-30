@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:medqueue_frontend/services/appointment_service.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../utils/app_colors.dart';
+import 'package:medqueue_frontend/screens/patient/edit_patient_profile_screen.dart';
 import '../../widgets/custom_components.dart';
 
 class PatientProfileScreen extends StatefulWidget {
@@ -17,7 +19,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: Consumer<AuthService>(
-        builder: (context, authService, _) {
+        builder: (context, authService, appointmentService) {
           final user = authService.currentUser;
           return SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -106,7 +108,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                             const SizedBox(height: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 4),
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.18),
                                 borderRadius: BorderRadius.circular(20),
@@ -122,40 +126,49 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                             ),
                             const SizedBox(height: 20),
                             // Stats row
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _ProfileStat(
-                                  label: 'Appointments',
-                                  value: '12',
-                                  icon: Icons.calendar_month_rounded,
-                                ),
-                                Container(
-                                  width: 1,
-                                  height: 36,
-                                  color: Colors.white.withOpacity(0.3),
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 20),
-                                ),
-                                _ProfileStat(
-                                  label: 'Blood Type',
-                                  value:
-                                      user?.patientProfile?.bloodGroup ?? '—',
-                                  icon: Icons.bloodtype_rounded,
-                                ),
-                                Container(
-                                  width: 1,
-                                  height: 36,
-                                  color: Colors.white.withOpacity(0.3),
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 20),
-                                ),
-                                _ProfileStat(
-                                  label: 'Status',
-                                  value: 'Active',
-                                  icon: Icons.verified_rounded,
-                                ),
-                              ],
+                            //consume by appointment count
+                            Consumer<AppointmentService>(
+                              builder: (context, appointmentService, child) {
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    _ProfileStat(
+                                      label: 'Appointments',
+                                      value:
+                                          '${appointmentService.appointmentCount}',
+                                      icon: Icons.calendar_month_rounded,
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 36,
+                                      color: Colors.white.withOpacity(0.3),
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                      ),
+                                    ),
+                                    _ProfileStat(
+                                      label: 'Blood Type',
+                                      value:
+                                          user?.patientProfile?.bloodGroup ??
+                                          '—',
+                                      icon: Icons.bloodtype_rounded,
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 36,
+                                      color: Colors.white.withOpacity(0.3),
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                      ),
+                                    ),
+                                    _ProfileStat(
+                                      label: 'Status',
+                                      value: 'Active',
+                                      icon: Icons.verified_rounded,
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -204,29 +217,33 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                         label: 'Blood Type',
                         value: user?.patientProfile?.bloodGroup ?? 'N/A',
                         iconColor: AppColors.emergencyRed,
-                        valueWidget:
-                            user?.patientProfile?.bloodGroup != null
-                                ? Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.emergencyRed
-                                          .withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                          color: AppColors.emergencyRed
-                                              .withOpacity(0.3)),
+                        valueWidget: user?.patientProfile?.bloodGroup != null
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.emergencyRed.withOpacity(
+                                    0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: AppColors.emergencyRed.withOpacity(
+                                      0.3,
                                     ),
-                                    child: Text(
-                                      user!.patientProfile!.bloodGroup!,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.emergencyRed,
-                                      ),
-                                    ),
-                                  )
-                                : null,
+                                  ),
+                                ),
+                                child: Text(
+                                  user!.patientProfile!.bloodGroup!,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.emergencyRed,
+                                  ),
+                                ),
+                              )
+                            : null,
                       ),
                       _ModernInfoTile(
                         icon: Icons.contact_emergency_rounded,
@@ -249,7 +266,15 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                     children: [
                       // Edit Profile
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const PatientEditProfileScreen(),
+                            ),
+                          );
+                        },
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -257,7 +282,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                             gradient: const LinearGradient(
                               colors: [
                                 AppColors.primaryBlue,
-                                AppColors.primaryGreen
+                                AppColors.primaryGreen,
                               ],
                               begin: Alignment.centerLeft,
                               end: Alignment.centerRight,
@@ -275,8 +300,11 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.edit_rounded,
-                                  color: Colors.white, size: 18),
+                              Icon(
+                                Icons.edit_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                               SizedBox(width: 8),
                               Text(
                                 'Edit Profile',
@@ -294,8 +322,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                       const SizedBox(height: 12),
                       // Logout
                       GestureDetector(
-                        onTap: () =>
-                            _showLogoutDialog(context, authService),
+                        onTap: () => _showLogoutDialog(context, authService),
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -309,8 +336,11 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.logout_rounded,
-                                  color: AppColors.emergencyRed, size: 18),
+                              Icon(
+                                Icons.logout_rounded,
+                                color: AppColors.emergencyRed,
+                                size: 18,
+                              ),
                               SizedBox(width: 8),
                               Text(
                                 'Logout',

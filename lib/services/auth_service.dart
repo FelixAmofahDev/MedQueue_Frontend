@@ -360,6 +360,41 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Update the authenticated user's profile
+  Future<bool> updateProfile(Map<String, dynamic> body) async {
+    _isLoading = true;
+    _errorMessage = null;
+    _fieldErrors = null;
+    notifyListeners();
+
+    try {
+      final response = await ApiClient.patchWithAuth<UserProfile>(
+        ApiConstants.profileEndpoint,
+        body: body,
+        parser: (json) => UserProfile.fromJson(json),
+      );
+
+      if (response.isSuccess && response.data != null) {
+        _currentUser = response.data;
+        await TokenManager.saveUserData(_currentUser!);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
+      _errorMessage = response.message;
+      _fieldErrors = response.errors;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Profile update failed: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Clear error messages
   void clearError() {
     _errorMessage = null;
