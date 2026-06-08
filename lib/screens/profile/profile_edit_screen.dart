@@ -20,22 +20,23 @@ class ProfileEditScreen extends StatefulWidget {
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneNumberController = TextEditingController();
-  final _whatsappNumberController = TextEditingController();
-  final _dateOfBirthController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _bloodGroupController = TextEditingController();
-  final _allergiesController = TextEditingController();
-  final _emergencyContactNameController = TextEditingController();
-  final _emergencyContactPhoneController = TextEditingController();
-  final _medicalHistoryController = TextEditingController();
+   final _firstNameController = TextEditingController();
+   final _lastNameController = TextEditingController();
+   final _emailController = TextEditingController();
+   final _phoneNumberController = TextEditingController();
+   final _whatsappNumberController = TextEditingController();
+   final _dateOfBirthController = TextEditingController();
+   final _addressController = TextEditingController();
+   final _bloodGroupController = TextEditingController();
+   final _allergiesController = TextEditingController();
+   final _emergencyContactNameController = TextEditingController();
+   final _emergencyContactPhoneController = TextEditingController();
+   final _medicalHistoryController = TextEditingController();
+   final _profilePictureController = TextEditingController();
 
-  final _doctorEmailController = TextEditingController();
-  final _doctorPhoneController = TextEditingController();
-  final _doctorWhatsappController = TextEditingController();
+   final _doctorEmailController = TextEditingController();
+   final _doctorPhoneController = TextEditingController();
+   final _doctorWhatsappController = TextEditingController();
 
   bool _initialized = false;
   bool _submitting = false;
@@ -68,9 +69,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         user.patientProfile?.emergencyContactName ?? '';
     _emergencyContactPhoneController.text =
         user.patientProfile?.emergencyContactPhone ?? '';
-    _medicalHistoryController.text = user.patientProfile?.medicalHistory ?? '';
+     _medicalHistoryController.text = user.patientProfile?.medicalHistory ?? '';
+     _profilePictureController.text = user.profilePictureUrl ?? '';
 
-    _doctorEmailController.text = user.email;
+     _doctorEmailController.text = user.email;
     _doctorPhoneController.text = user.phoneNumber;
     _doctorWhatsappController.text = user.whatsappNumber ?? '';
 
@@ -80,25 +82,26 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _notifWhatsapp = user.notifWhatsapp;
   }
 
-  @override
-  void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _emailController.dispose();
-    _phoneNumberController.dispose();
-    _whatsappNumberController.dispose();
-    _dateOfBirthController.dispose();
-    _addressController.dispose();
-    _bloodGroupController.dispose();
-    _allergiesController.dispose();
-    _emergencyContactNameController.dispose();
-    _emergencyContactPhoneController.dispose();
-    _medicalHistoryController.dispose();
-    _doctorEmailController.dispose();
-    _doctorPhoneController.dispose();
-    _doctorWhatsappController.dispose();
-    super.dispose();
-  }
+   @override
+   void dispose() {
+     _firstNameController.dispose();
+     _lastNameController.dispose();
+     _emailController.dispose();
+     _phoneNumberController.dispose();
+     _whatsappNumberController.dispose();
+     _dateOfBirthController.dispose();
+     _addressController.dispose();
+     _bloodGroupController.dispose();
+     _allergiesController.dispose();
+     _emergencyContactNameController.dispose();
+     _emergencyContactPhoneController.dispose();
+     _medicalHistoryController.dispose();
+     _profilePictureController.dispose();
+     _doctorEmailController.dispose();
+     _doctorPhoneController.dispose();
+     _doctorWhatsappController.dispose();
+     super.dispose();
+   }
 
   Future<void> _pickDateOfBirth() async {
     final current = _dateOfBirthController.text.isNotEmpty
@@ -189,39 +192,40 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Map<String, dynamic> _buildPayload() {
-    if (widget.role == UserRole.doctor) {
-      return {
-        'email': _doctorEmailController.text.trim(),
-        'phone_number': _doctorPhoneController.text.trim(),
-        'whatsapp_number': _doctorWhatsappController.text.trim(),
-      };
-    }
+   Map<String, dynamic> _buildPayload() {
+     if (widget.role == UserRole.doctor) {
+       return {
+         'email': _doctorEmailController.text.trim(),
+         'phone_number': _doctorPhoneController.text.trim(),
+         'whatsapp_number': _doctorWhatsappController.text.trim(),
+         'profile_picture_url': _profilePictureController.text.trim(),
+       };
+     }
 
-    return {
-      'first_name': _firstNameController.text.trim(),
-      'last_name': _lastNameController.text.trim(),
-      'email': _emailController.text.trim(),
-      'phone_number': _phoneNumberController.text.trim(),
-      'whatsapp_number': _whatsappNumberController.text.trim(),
-      'date_of_birth': _dateOfBirthController.text.trim().isEmpty
-          ? null
-          : _dateOfBirthController.text.trim(),
-      'gender': _selectedGender,
-      'address': _addressController.text.trim(),
-      'profile_picture_url': _profilePictureController.text.trim(),
-      'notif_push': _notifPush,
-      'notif_sms': _notifSms,
-      'notif_whatsapp': _notifWhatsapp,
-      'patient_profile': {
-        'blood_group': _bloodGroupController.text.trim(),
-        'allergies': _allergiesController.text.trim(),
-        'emergency_contact_name': _emergencyContactNameController.text.trim(),
-        'emergency_contact_phone': _emergencyContactPhoneController.text.trim(),
-        'medical_history': _medicalHistoryController.text.trim(),
-      },
-    };
-  }
+     return {
+       'first_name': _firstNameController.text.trim(),
+       'last_name': _lastNameController.text.trim(),
+       'email': _emailController.text.trim(),
+       'phone_number': _phoneNumberController.text.trim(),
+       'whatsapp_number': _whatsappNumberController.text.trim(),
+       'date_of_birth': _dateOfBirthController.text.trim().isEmpty
+           ? null
+           : _dateOfBirthController.text.trim(),
+       'gender': _selectedGender,
+       'address': _addressController.text.trim(),
+       'profile_picture_url': _profilePictureController.text.trim(),
+       'notif_push': _notifPush,
+       'notif_sms': _notifSms,
+       'notif_whatsapp': _notifWhatsapp,
+       'patient_profile': {
+         'blood_group': _bloodGroupController.text.trim(),
+         'allergies': _allergiesController.text.trim(),
+         'emergency_contact_name': _emergencyContactNameController.text.trim(),
+         'emergency_contact_phone': _emergencyContactPhoneController.text.trim(),
+         'medical_history': _medicalHistoryController.text.trim(),
+       },
+     };
+   }
 
   String _extractErrorMessage(String? message, Map<String, dynamic>? errors) {
     if (errors != null && errors.isNotEmpty) {

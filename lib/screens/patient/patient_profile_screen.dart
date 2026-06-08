@@ -70,31 +70,65 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                         padding: const EdgeInsets.fromLTRB(24, 24, 24, 36),
                         child: Column(
                           children: [
-                            // Avatar
-                            Container(
-                              width: 96,
-                              height: 96,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white.withOpacity(0.2),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.5),
-                                  width: 3,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.15),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.person_rounded,
-                                size: 52,
-                                color: Colors.white,
-                              ),
-                            ),
+                       // Avatar
+                       user?.profilePictureUrl != null && user?.profilePictureUrl?.isNotEmpty == true
+                           ? Container(
+                               width: 96,
+                               height: 96,
+                               decoration: BoxDecoration(
+                                 shape: BoxShape.circle,
+                                 border: Border.all(
+                                   color: Colors.white.withOpacity(0.5),
+                                   width: 3,
+                                 ),
+                                 boxShadow: [
+                                   BoxShadow(
+                                     color: Colors.black.withOpacity(0.15),
+                                     blurRadius: 20,
+                                     offset: const Offset(0, 8),
+                                   ),
+                                 ],
+                               ),
+                               child: ClipOval(
+                                 child: Image.network(
+                                   user!.profilePictureUrl!,
+                                   fit: BoxFit.cover,
+                                   width: 96,
+                                   height: 96,
+                                   errorBuilder: (context, error, stackTrace) {
+                                     return const Icon(
+                                       Icons.person_rounded,
+                                       size: 52,
+                                       color: Colors.white,
+                                     );
+                                   },
+                                 ),
+                               ),
+                             )
+                           : Container(
+                               width: 96,
+                               height: 96,
+                               decoration: BoxDecoration(
+                                 shape: BoxShape.circle,
+                                 color: Colors.white.withOpacity(0.2),
+                                 border: Border.all(
+                                   color: Colors.white.withOpacity(0.5),
+                                   width: 3,
+                                 ),
+                                 boxShadow: [
+                                   BoxShadow(
+                                     color: Colors.black.withOpacity(0.15),
+                                     blurRadius: 20,
+                                     offset: const Offset(0, 8),
+                                   ),
+                                 ],
+                               ),
+                               child: const Icon(
+                                 Icons.person_rounded,
+                                 size: 52,
+                                 color: Colors.white,
+                               ),
+                             ),
                             const SizedBox(height: 16),
                             Text(
                               user?.fullName ?? 'Patient',

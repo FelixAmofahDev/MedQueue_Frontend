@@ -9,26 +9,29 @@ class User {
   final String phone;
   final UserRole role;
   final DateTime createdAt;
+  final String? profilePictureUrl;
 
-  User({
-    required this.id,
-    required this.email,
-    required this.password,
-    required this.fullName,
-    required this.phone,
-    required this.role,
-    required this.createdAt,
-  });
+   User({
+     required this.id,
+     required this.email,
+     required this.password,
+     required this.fullName,
+     required this.phone,
+     required this.role,
+     required this.createdAt,
+     this.profilePictureUrl,
+   });
 
-  // For JSON serialization when backend is ready
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'email': email,
-    'fullName': fullName,
-    'phone': phone,
-    'role': role.toString(),
-    'createdAt': createdAt.toIso8601String(),
-  };
+   // For JSON serialization when backend is ready
+   Map<String, dynamic> toJson() => {
+     'id': id,
+     'email': email,
+     'fullName': fullName,
+     'phone': phone,
+     'role': role.toString(),
+     'createdAt': createdAt.toIso8601String(),
+     'profilePictureUrl': profilePictureUrl,
+   };
 }
 
 // Patient specific model
@@ -46,6 +49,7 @@ class Patient extends User {
     required super.fullName,
     required super.phone,
     required super.createdAt,
+    super.profilePictureUrl,
     this.dateOfBirth,
     this.bloodType,
     this.emergencyContact,
@@ -74,8 +78,9 @@ class Doctor extends User {
     required super.password,
     required super.fullName,
     required super.phone,
-    required this.specialization,
     required super.createdAt,
+    super.profilePictureUrl,
+    required this.specialization,
     this.medicalLicense,
     this.rating = 4.5,
     this.yearsOfExperience = 5,
@@ -100,8 +105,9 @@ class Admin extends User {
     required super.password,
     required super.fullName,
     required super.phone,
-    required this.department,
     required super.createdAt,
+    super.profilePictureUrl,
+    required this.department,
     this.permissions,
   }) : super(
     role: UserRole.admin,
