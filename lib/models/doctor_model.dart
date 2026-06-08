@@ -1,3 +1,5 @@
+import 'package:medqueue_frontend/utils/api_constants.dart';
+
 import '../utils/type_helpers.dart';
 
 class Doctor {
@@ -13,7 +15,6 @@ class Doctor {
   final String? bio;
   final String? whatsappNumber;
   final bool whatsappLinked;
-  
 
   Doctor({
     required this.id,
@@ -37,9 +38,12 @@ class Doctor {
     return names.map((n) => n.isNotEmpty ? n[0] : '').join();
   }
 
-  bool get hasWhatsApp => whatsappLinked && (whatsappNumber ?? '').trim().isNotEmpty;
+  bool get hasWhatsApp =>
+      whatsappLinked && (whatsappNumber ?? '').trim().isNotEmpty;
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
+    final rawProfilePic = (json['profile_picture_url'] as String?)?.trim();
+
     return Doctor(
       id: TypeHelpers.toInt(json['id']),
       fullName: json['full_name'] as String? ?? '',
@@ -47,9 +51,14 @@ class Doctor {
       hospitalName: json['hospital_name'] as String? ?? '',
       consultationFee: TypeHelpers.toDouble(json['consultation_fee']),
       yearsOfExperience: TypeHelpers.toInt(json['years_of_experience']),
-      avgConsultationMinutes: TypeHelpers.toInt(json['avg_consultation_minutes']) == 0 ? 15 : TypeHelpers.toInt(json['avg_consultation_minutes']),
+      avgConsultationMinutes:
+          TypeHelpers.toInt(json['avg_consultation_minutes']) == 0
+          ? 15
+          : TypeHelpers.toInt(json['avg_consultation_minutes']),
       isAcceptingPatients: json['is_accepting_patients'] as bool? ?? true,
-      profilePictureUrl: json['profile_picture_url'] as String? ?? '',
+      profilePictureUrl: (rawProfilePic == null || rawProfilePic.isEmpty)
+          ? ''
+          : '${ApiConstants.mediaBaseUrl}media/$rawProfilePic',
       bio: json['bio'] as String? ?? '',
       whatsappNumber: json['whatsapp_number'] as String?,
       whatsappLinked: json['whatsapp_linked'] as bool? ?? false,
@@ -57,17 +66,17 @@ class Doctor {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'full_name': fullName,
-        'specialization': specialization,
-        'hospital_name': hospitalName,
-        'consultation_fee': consultationFee,
-        'years_of_experience': yearsOfExperience,
-        'avg_consultation_minutes': avgConsultationMinutes,
-        'is_accepting_patients': isAcceptingPatients,
-        'profile_picture_url': profilePictureUrl,
-        'bio': bio,
-        'whatsapp_number': whatsappNumber,
-        'whatsapp_linked': whatsappLinked,
-      };
+    'id': id,
+    'full_name': fullName,
+    'specialization': specialization,
+    'hospital_name': hospitalName,
+    'consultation_fee': consultationFee,
+    'years_of_experience': yearsOfExperience,
+    'avg_consultation_minutes': avgConsultationMinutes,
+    'is_accepting_patients': isAcceptingPatients,
+    'profile_picture_url': profilePictureUrl,
+    'bio': bio,
+    'whatsapp_number': whatsappNumber,
+    'whatsapp_linked': whatsappLinked,
+  };
 }

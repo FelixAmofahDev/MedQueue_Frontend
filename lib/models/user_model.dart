@@ -1,4 +1,6 @@
 // User base model
+import 'package:medqueue_frontend/utils/api_constants.dart';
+  
 enum UserRole { patient, doctor, admin }
 
 class User {
@@ -11,27 +13,28 @@ class User {
   final DateTime createdAt;
   final String? profilePictureUrl;
 
-   User({
-     required this.id,
-     required this.email,
-     required this.password,
-     required this.fullName,
-     required this.phone,
-     required this.role,
-     required this.createdAt,
-     this.profilePictureUrl,
-   });
+  User({
+    required this.id,
+    required this.email,
+    required this.password,
+    required this.fullName,
+    required this.phone,
+    required this.role,
+    required this.createdAt,
+    this.profilePictureUrl,
+  });
 
-   // For JSON serialization when backend is ready
-   Map<String, dynamic> toJson() => {
-     'id': id,
-     'email': email,
-     'fullName': fullName,
-     'phone': phone,
-     'role': role.toString(),
-     'createdAt': createdAt.toIso8601String(),
-     'profilePictureUrl': profilePictureUrl,
-   };
+  // For JSON serialization when backend is ready
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'email': email,
+    'fullName': fullName,
+    'phone': phone,
+    'role': role.toString(),
+    'createdAt': createdAt.toIso8601String(),
+    //add this to the image url: http://127.0.0.1:8000//media/profile_pictures/filename.jpg
+    'profile_picture_url': '${ApiConstants.mediaBaseUrl}${profilePictureUrl ?? ''}',
+  };
 }
 
 // Patient specific model

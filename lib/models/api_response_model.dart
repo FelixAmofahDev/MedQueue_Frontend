@@ -1,4 +1,6 @@
 
+import 'package:medqueue_frontend/utils/api_constants.dart';
+
 import '../utils/type_helpers.dart';
 
 /// API Response Envelope
@@ -164,7 +166,8 @@ class UserProfile {
       dateOfBirth: json['date_of_birth'] as String?,
       gender: json['gender'] as String?,
       address: json['address'] as String?,
-      profilePictureUrl: json['profile_picture_url'] as String?,
+      // format profile url as htt
+      profilePictureUrl: "${ApiConstants.mediaBaseUrl}${json['profile_picture_url'] ?? ''}" as String?,
       isPhoneVerified: json['is_phone_verified'] as bool? ?? false,
       isEmailVerified: json['is_email_verified'] as bool? ?? false,
       whatsappNumber: json['whatsapp_number'] as String?,

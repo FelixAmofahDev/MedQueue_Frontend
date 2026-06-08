@@ -49,6 +49,29 @@ class DoctorCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  //check if profile picture url is not empty an null, if available display the image
+                  if (doctor.profilePictureUrl.trim().isNotEmpty)
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        image: DecorationImage(
+                          image: NetworkImage(doctor.profilePictureUrl),
+                          fit: BoxFit.cover,
+                        ),
+                       /*  boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryBlue.withOpacity(0.3),
+                            blurRadius: 12,
+                            spreadRadius: -2,
+                            offset: const Offset(0, 4),
+                          ),
+                        ], */
+                      ),
+                    )
+                  else
+                  
                   // ── Avatar ───────────────────────────────
                   Container(
                     width: 64,
