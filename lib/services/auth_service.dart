@@ -395,6 +395,147 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  /// Update profile with picture upload (multipart/form-data)
+  Future<bool> updateProfileWithPicture({
+    required Map<String, String> fields,
+    required String picturePath,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    _fieldErrors = null;
+    notifyListeners();
+
+    try {
+      final response = await ApiClient.patchWithFileAuth<UserProfile>(
+        ApiConstants.profileEndpoint,
+        fields: fields,
+        fileFieldName: 'profile_picture',
+        filePath: picturePath,
+        parser: (json) => UserProfile.fromJson(json),
+      );
+
+      if (response.isSuccess && response.data != null) {
+        _currentUser = response.data;
+        await TokenManager.saveUserData(_currentUser!);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
+      _errorMessage = response.message;
+      _fieldErrors = response.errors;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Profile update with picture failed: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Register with optional profile picture
+  Future<bool> registerWithPicture({
+    required String username,
+    required String email,
+    required String phoneNumber,
+    String? whatsappNumber,
+    required String password,
+    required String passwordConfirm,
+    required String firstName,
+    required String lastName,
+    required String role,
+    String gender = 'unspecified',
+    String? dateOfBirth,
+    String? address,
+    String? bloodGroup,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
+    String? profilePicturePath,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    _fieldErrors = null;
+    notifyListeners();
+
+    try {
+      final fields = <String, String>{
+        'username': username.trim(),
+        'email': email.trim(),
+        'phone_number': phoneNumber.trim(),
+        'whatsapp_number': whatsappNumber?.trim() ?? '',
+        'password': password,
+        'password_confirm': passwordConfirm,
+        'first_name': firstName.trim(),
+        'last_name': lastName.trim(),
+        'role': role,
+        'gender': gender,
+      };
+
+      if (dateOfBirth != null) fields['date_of_birth'] = dateOfBirth;
+      if (address != null) fields['address'] = address.trim();
+
+      if (role == 'patient') {
+        if (bloodGroup != null) fields['blood_group'] = bloodGroup;
+        if (emergencyContactName != null) {
+          fields['emergency_contact_name'] = emergencyContactName.trim();
+        }
+        if (emergencyContactPhone != null) {
+          fields['emergency_contact_phone'] = emergencyContactPhone.trim();
+        }
+      }
+
+      // If profile picture is provided, use multipart upload
+      if (profilePicturePath != null && profilePicturePath.isNotEmpty) {
+        final response = await ApiClient.postWithFile<Map<String, dynamic>>(
+          ApiConstants.registerEndpoint,
+          fields: fields,
+          fileFieldName: 'profile_picture',
+          filePath: profilePicturePath,
+          parser: (json) => json,
+        );
+
+        if (response.isSuccess) {
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        } else {
+          _errorMessage = response.message;
+          _fieldErrors = response.errors;
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
+      } else {
+        // Fallback to JSON registration without file
+        final body = fields.cast<String, dynamic>();
+        final response = await ApiClient.post<Map<String, dynamic>>(
+          ApiConstants.registerEndpoint,
+          body: body,
+          parser: (json) => json,
+        );
+
+        if (response.isSuccess) {
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        } else {
+          _errorMessage = response.message;
+          _fieldErrors = response.errors;
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
+      }
+    } catch (e) {
+      _errorMessage = 'Registration failed: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Clear error messages
   void clearError() {
     _errorMessage = null;

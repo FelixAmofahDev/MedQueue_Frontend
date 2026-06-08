@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 import '../../services/auth_service.dart';
 import '../../utils/app_colors.dart';
@@ -25,7 +27,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _whatsappNumberController = TextEditingController();
   final _dateOfBirthController = TextEditingController();
   final _addressController = TextEditingController();
-  final _profilePictureController = TextEditingController();
   final _bloodGroupController = TextEditingController();
   final _allergiesController = TextEditingController();
   final _emergencyContactNameController = TextEditingController();
@@ -42,6 +43,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   bool _notifPush = true;
   bool _notifSms = true;
   bool _notifWhatsapp = false;
+  File? _selectedImage;
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void didChangeDependencies() {
@@ -59,7 +62,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _whatsappNumberController.text = user.whatsappNumber ?? '';
     _dateOfBirthController.text = user.dateOfBirth ?? '';
     _addressController.text = user.address ?? '';
-    _profilePictureController.text = user.profilePictureUrl ?? '';
     _bloodGroupController.text = user.patientProfile?.bloodGroup ?? '';
     _allergiesController.text = user.patientProfile?.allergies ?? '';
     _emergencyContactNameController.text =
@@ -87,7 +89,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _whatsappNumberController.dispose();
     _dateOfBirthController.dispose();
     _addressController.dispose();
-    _profilePictureController.dispose();
     _bloodGroupController.dispose();
     _allergiesController.dispose();
     _emergencyContactNameController.dispose();
@@ -121,6 +122,21 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
   }
 
+  Future<void> _pickProfileImage() async {
+    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  void _removeProfileImage() {
+    setState(() {
+      _selectedImage = null;
+    });
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -131,7 +147,24 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       _submitting = true;
     });
 
-    final success = await authService.updateProfile(body);
+    bool success;
+    // If profile picture is selected, use multipart upload
+    if (_selectedImage != null) {
+      final fields = <String, String>{};
+      // Add fields from body to fields map
+      body.forEach((key, value) {
+        if (value != null && value is! Map) {
+          fields[key] = value.toString();
+        }
+      });
+      
+      success = await authService.updateProfileWithPicture(
+        fields: fields,
+        picturePath: _selectedImage!.path,
+      );
+    } else {
+      success = await authService.updateProfile(body);
+    }
 
     if (!mounted) return;
 
@@ -383,15 +416,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                             maxLines: 2,
                             validator: _validateOptional,
                           ),
-                          _editableField(
-                            controller: _profilePictureController,
-                            label: 'Profile Picture URL',
-                            icon: Icons.image_rounded,
-                            keyboardType: TextInputType.url,
-                            maxLines: 2,
-                            showDivider: false,
-                            validator: _validateOptional,
-                          ),
+                          // Profile Picture Picker
+                          _profilePicturePickerWidget(isLoading),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -633,6 +659,96 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             _selectedGender = value;
           });
         },
+      ),
+    );
+  }
+
+  Widget _profilePicturePickerWidget(bool isLoading) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.photo_camera_rounded,
+                  color: AppColors.primaryBlue, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                'Profile Picture',
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDark),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_selectedImage != null) ...[
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                image: DecorationImage(
+                  image: FileImage(_selectedImage!),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: isLoading ? null : _pickProfileImage,
+                  icon: const Icon(Icons.image_rounded),
+                  label: const Text('Change'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: isLoading ? null : _removeProfileImage,
+                  icon: const Icon(Icons.delete_rounded),
+                  label: const Text('Remove'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.errorRed,
+                  ),
+                ),
+              ],
+            ),
+          ] else if (_profilePictureController.text.isNotEmpty) ...[
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Image.network(
+                _profilePictureController.text,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.borderColor,
+                    ),
+                    child: const Icon(Icons.image_not_supported_rounded),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: isLoading ? null : _pickProfileImage,
+              icon: const Icon(Icons.image_rounded),
+              label: const Text('Change Picture'),
+            ),
+          ] else
+            ElevatedButton.icon(
+              onPressed: isLoading ? null : _pickProfileImage,
+              icon: const Icon(Icons.image_rounded),
+              label: const Text('Pick Picture'),
+            ),
+        ],
       ),
     );
   }

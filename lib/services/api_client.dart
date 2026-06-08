@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'package:medqueue_frontend/utils/api_constants.dart';
 import 'package:medqueue_frontend/utils/token_manager.dart';
 import 'dart:convert';
+import 'dart:io';
 import '../models/api_response_model.dart';
 
 /// HTTP API Client with automatic token refresh and error handling
@@ -311,6 +312,149 @@ class ApiClient {
     }
 
     return headers;
+  }
+
+  /// Perform a PATCH request with file upload (multipart/form-data) with authentication
+  static Future<ApiResponse<T>> patchWithFileAuth<T>(
+    String endpoint, {
+    required Map<String, String> fields,
+    required String fileFieldName,
+    required String filePath,
+    required T Function(Map<String, dynamic>) parser,
+  }) async {
+    String? accessToken = await TokenManager.getAccessToken();
+
+    if (accessToken == null) {
+      return ApiResponse(
+        status: 'error',
+        message: 'Not authenticated. Please log in.',
+        errors: {'auth': 'No access token available'},
+      );
+    }
+
+    // Check if token is expired
+    if (await TokenManager.isAccessTokenExpired()) {
+      final refreshed = await _refreshAccessToken();
+      if (!refreshed) {
+        return ApiResponse(
+          status: 'error',
+          message: ApiConstants.sessionExpired,
+          errors: {'auth': 'Token refresh failed'},
+        );
+      }
+      accessToken = await TokenManager.getAccessToken();
+    }
+
+    // Perform the actual request
+    final response = await _performMultipartRequest(
+      method: 'PATCH',
+      endpoint: endpoint,
+      fields: fields,
+      fileFieldName: fileFieldName,
+      filePath: filePath,
+      parser: parser,
+      authToken: accessToken,
+    );
+
+    // If 401, try to refresh token and retry once
+    if (response.status == 'error' && 
+        response.errors?['statusCode'] == 401) {
+      final refreshed = await _refreshAccessToken();
+      if (refreshed) {
+        accessToken = await TokenManager.getAccessToken();
+        return _performMultipartRequest(
+          method: 'PATCH',
+          endpoint: endpoint,
+          fields: fields,
+          fileFieldName: fileFieldName,
+          filePath: filePath,
+          parser: parser,
+          authToken: accessToken,
+        );
+      } else {
+        await TokenManager.clearAll();
+        return ApiResponse(
+          status: 'error',
+          message: ApiConstants.sessionExpired,
+          errors: {'auth': 'Session expired'},
+        );
+      }
+    }
+
+    return response;
+  }
+
+  /// Perform a POST request with file upload (multipart/form-data) without authentication
+  static Future<ApiResponse<T>> postWithFile<T>(
+    String endpoint, {
+    required Map<String, String> fields,
+    required String fileFieldName,
+    required String filePath,
+    required T Function(Map<String, dynamic>) parser,
+  }) async {
+    return _performMultipartRequest(
+      method: 'POST',
+      endpoint: endpoint,
+      fields: fields,
+      fileFieldName: fileFieldName,
+      filePath: filePath,
+      parser: parser,
+    );
+  }
+
+  /// Internal method to perform multipart/form-data request
+  static Future<ApiResponse<T>> _performMultipartRequest<T>({
+    required String method,
+    required String endpoint,
+    required Map<String, String> fields,
+    required String fileFieldName,
+    required String filePath,
+    required T Function(Map<String, dynamic>) parser,
+    String? authToken,
+  }) async {
+    try {
+      final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final request = http.MultipartRequest(method, uri);
+
+      // Add authentication header if token provided
+      if (authToken != null) {
+        request.headers['Authorization'] = 'Bearer $authToken';
+      }
+
+      // Add text fields
+      for (final entry in fields.entries) {
+        request.fields[entry.key] = entry.value;
+      }
+
+      // Add file
+      final file = await http.MultipartFile.fromPath(fileFieldName, filePath);
+      request.files.add(file);
+
+      // Send request
+      final streamedResponse = await request.send()
+          .timeout(ApiConstants.apiTimeout);
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return _parseResponse(response, parser);
+    } on SocketException {
+      return ApiResponse(
+        status: 'error',
+        message: ApiConstants.networkError,
+        errors: {'network': 'SocketException'},
+      );
+    } on TimeoutException {
+      return ApiResponse(
+        status: 'error',
+        message: ApiConstants.timeoutError,
+        errors: {'timeout': 'Request timeout'},
+      );
+    } catch (e) {
+      return ApiResponse(
+        status: 'error',
+        message: '${ApiConstants.unexpectedError} ($e)',
+        errors: {'exception': e.toString()},
+      );
+    }
   }
 }
 

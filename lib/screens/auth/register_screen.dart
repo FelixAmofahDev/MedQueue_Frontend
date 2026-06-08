@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../services/auth_service.dart';
 import '../../utils/api_constants.dart';
 import '../../utils/app_colors.dart';
@@ -34,11 +36,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscurePassword = true;
   bool _obscurePasswordConfirm = true;
   String _selectedGender = 'unspecified';
+  File? _selectedImage;
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
     _selectedRole = 'patient';
+  }
+
+  Future<void> _pickProfileImage() async {
+    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  void _removeProfileImage() {
+    setState(() {
+      _selectedImage = null;
+    });
   }
 
   @override
@@ -61,7 +80,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _handleRegister(AuthService authService) async {
     if (!_formKey.currentState!.validate()) return;
-    final success = await authService.register(
+    final success = await authService.registerWithPicture(
       username: _usernameController.text.trim(),
       email: _emailController.text.trim(),
       phoneNumber: _phoneController.text.trim(),
@@ -89,6 +108,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       emergencyContactPhone: _emergencyPhoneController.text.isEmpty
           ? null
           : _emergencyPhoneController.text.trim(),
+      profilePicturePath: _selectedImage?.path,
     );
     if (success && mounted) _showOTPDialog(authService);
   }
@@ -503,6 +523,95 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             icon: Icons.location_on_rounded,
                             maxLines: 2,
                             enabled: !authService.isLoading,
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // ── Profile Picture ───────────────
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryBlue.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                  color: AppColors.primaryBlue
+                                      .withOpacity(0.2)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(
+                                        Icons.photo_camera_rounded,
+                                        color: AppColors.primaryBlue,
+                                        size: 20),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Profile Picture (optional)',
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primaryBlue),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                if (_selectedImage != null) ...[
+                                  Container(
+                                    width: 100,
+                                    height: 100,
+                                    decoration: BoxDecoration(
+                                      borderRadius:
+                                          BorderRadius.circular(12),
+                                      image: DecorationImage(
+                                        image: FileImage(_selectedImage!),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      ElevatedButton.icon(
+                                        onPressed: authService.isLoading
+                                            ? null
+                                            : _pickProfileImage,
+                                        icon: const Icon(Icons
+                                            .image_rounded),
+                                        label: const Text(
+                                            'Change'),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      ElevatedButton.icon(
+                                        onPressed: authService.isLoading
+                                            ? null
+                                            : _removeProfileImage,
+                                        icon: const Icon(Icons
+                                            .delete_rounded),
+                                        label: const Text(
+                                            'Remove'),
+                                        style:
+                                            ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              AppColors.errorRed,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ] else
+                                  ElevatedButton.icon(
+                                    onPressed: authService.isLoading
+                                        ? null
+                                        : _pickProfileImage,
+                                    icon: const Icon(Icons
+                                        .image_rounded),
+                                    label: const Text(
+                                        'Pick Picture'),
+                                  ),
+                              ],
+                            ),
                           ),
 
                           const SizedBox(height: 20),
