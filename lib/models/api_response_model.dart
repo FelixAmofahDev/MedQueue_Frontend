@@ -166,7 +166,6 @@ class UserProfile {
       dateOfBirth: json['date_of_birth'] as String?,
       gender: json['gender'] as String?,
       address: json['address'] as String?,
-      // format profile url as htt
       profilePictureUrl: "${ApiConstants.mediaBaseUrl}${json['profile_picture_url'] ?? ''}" as String?,
       isPhoneVerified: json['is_phone_verified'] as bool? ?? false,
       isEmailVerified: json['is_email_verified'] as bool? ?? false,
@@ -185,6 +184,37 @@ class UserProfile {
     );
   }
 
+  factory UserProfile.fromJsonApi(Map<String, dynamic> json) {
+    final profile = UserProfile(
+      id: TypeHelpers.toInt(json['id']),
+      username: json['username'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      role: json['role'] as String? ?? 'patient',
+      firstName: json['first_name'] as String? ?? '',
+      lastName: json['last_name'] as String? ?? '',
+      fullName: json['full_name'] as String? ?? '',
+      phoneNumber: json['phone_number'] as String? ?? '',
+      dateOfBirth: json['date_of_birth'] as String?,
+      gender: json['gender'] as String?,
+      address: json['address'] as String?,
+      profilePictureUrl: "${ApiConstants.mediaBaseUrl}${json['profile_picture_url'] ?? ''}" as String?,
+      isPhoneVerified: json['is_phone_verified'] as bool? ?? false,
+      isEmailVerified: json['is_email_verified'] as bool? ?? false,
+      whatsappNumber: json['whatsapp_number'] as String?,
+      whatsappLinked: json['whatsapp_linked'] as bool? ?? false,
+      notifPush: json['notif_push'] as bool? ?? true,
+      notifSms: json['notif_sms'] as bool? ?? true,
+      notifWhatsapp: json['notif_whatsapp'] as bool? ?? false,
+      patientProfile: json['patient_profile'] != null
+          ? PatientProfile.fromJson(json['patient_profile'])
+          : null,
+      doctorProfile: json['doctor_profile'] != null
+          ? DoctorProfile.fromJson(json['doctor_profile'])
+          : null,
+      createdAt: DateTime.parse(json['created_at'] as String? ?? '2026-05-13'),
+    );
+    return profile;
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -253,28 +283,44 @@ class DoctorProfile {
   final String? medicalLicense;
   final String? hospitalName;
   final double? consultationFee;
+  final int? yearsOfExperience;
+  final bool isAcceptingPatients;
+  final String? bio;
+  final int? avgConsultationMinutes;
 
   DoctorProfile({
     required this.specialization,
     this.medicalLicense,
     this.hospitalName,
     this.consultationFee,
+    this.yearsOfExperience,
+    this.isAcceptingPatients = false,
+    this.bio,
+    this.avgConsultationMinutes,
   });
 
   factory DoctorProfile.fromJson(Map<String, dynamic> json) {
     return DoctorProfile(
       specialization: json['specialization'] as String? ?? '',
-      medicalLicense: json['medical_license'] as String?,
+      medicalLicense: json['medical_license_number'] as String?,
       hospitalName: json['hospital_name'] as String?,
       consultationFee: TypeHelpers.toDouble(json['consultation_fee']),
+      yearsOfExperience: TypeHelpers.toInt(json['years_of_experience']),
+      isAcceptingPatients: json['is_accepting_patients'] as bool? ?? false,
+      bio: json['bio'] as String?,
+      avgConsultationMinutes: TypeHelpers.toInt(json['avg_consultation_minutes']),
     );
   }
 
   Map<String, dynamic> toJson() => {
         'specialization': specialization,
-        'medical_license': medicalLicense,
+        'medical_license_number': medicalLicense,
         'hospital_name': hospitalName,
         'consultation_fee': consultationFee,
+        'years_of_experience': yearsOfExperience,
+        'is_accepting_patients': isAcceptingPatients,
+        'bio': bio,
+        'avg_consultation_minutes': avgConsultationMinutes,
       };
 }
 

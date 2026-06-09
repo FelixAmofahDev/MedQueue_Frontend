@@ -285,6 +285,31 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
 
                 const SizedBox(height: 12),
 
+                if (doctor?.doctorProfile?.bio != null && doctor!.doctorProfile!.bio!.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _SectionCard(
+                      title: 'About',
+                      icon: Icons.article_rounded,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          child: Text(
+                            doctor.doctorProfile!.bio!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color.fromARGB(255, 75, 86, 96),
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                const SizedBox(height: 12),
+
                 // ── Consultation Information ────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
