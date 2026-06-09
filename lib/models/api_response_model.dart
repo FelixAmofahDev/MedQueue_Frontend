@@ -25,12 +25,15 @@ class ApiResponse<T> {
     Map<String, dynamic> json,
     T Function(Map<String, dynamic>)? dataParser,
   ) {
+    final rawData = json['data'];
+    dynamic parsedData = rawData;
+    if (rawData != null && dataParser != null && rawData is Map<String, dynamic>) {
+      parsedData = dataParser(rawData);
+    }
     return ApiResponse(
       status: json['status'] ?? 'error',
       message: json['message'] ?? 'Unknown error',
-      data: json['data'] != null && dataParser != null
-          ? dataParser(json['data'] as Map<String, dynamic>)
-          : null,
+      data: parsedData as T?,
       errors: json['errors'] as Map<String, dynamic>?,
     );
   }

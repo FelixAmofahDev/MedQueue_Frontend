@@ -24,7 +24,9 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
   @override
   void initState() {
     super.initState();
-    _loadAvailability();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAvailability();
+    });
   }
 
   Future<void> _loadAvailability() async {

@@ -23,19 +23,23 @@ class AvailabilityService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await ApiClient.getWithAuth<Map<String, dynamic>>(
+      final response = await ApiClient.getWithAuth<dynamic>(
         ApiConstants.availabilityMyEndpoint,
-        parser: (json) => json as Map<String, dynamic>,
+        parser: (json) => json,
       );
 
       if (response.isSuccess && response.data != null) {
         _schedules.clear();
-        final rawList = response.data!['data'];
-        if (rawList is List) {
-          _schedules.addAll(
-            rawList.map((item) => DoctorSchedule.fromJson(item as Map<String, dynamic>)),
-          );
-        }
+        final raw = response.data!;
+        debugPrint('Raw availability data: $raw');
+        final List<dynamic> rawList = raw is List<dynamic>
+            ? raw
+            : (raw is Map && raw['data'] is List)
+                ? raw['data'] as List<dynamic>
+                : const <dynamic>[];
+        _schedules.addAll(
+          rawList.map((item) => DoctorSchedule.fromJson(item as Map<String, dynamic>)),
+        );
         _isLoading = false;
         notifyListeners();
         return true;
