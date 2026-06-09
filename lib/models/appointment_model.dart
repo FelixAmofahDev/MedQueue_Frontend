@@ -60,6 +60,7 @@ class PatientDetail {
   final String phone;
   final String? whatsappNumber;
   final bool whatsappLinked;
+  final String? profilePictureUrl;
 
   PatientDetail({
     required this.id,
@@ -68,10 +69,9 @@ class PatientDetail {
     required this.phone,
     this.whatsappNumber,
     this.whatsappLinked = false,
+    this.profilePictureUrl,
   });
-
   bool get hasWhatsApp => whatsappLinked && (whatsappNumber ?? '').trim().isNotEmpty;
-
   factory PatientDetail.fromJson(Map<String, dynamic> json) {
     return PatientDetail(
       id: TypeHelpers.toInt(json['id']),
@@ -80,6 +80,7 @@ class PatientDetail {
       phone: json['phone'] as String? ?? '',
       whatsappNumber: json['whatsapp_number'] as String?,
       whatsappLinked: json['whatsapp_linked'] as bool? ?? false,
+      profilePictureUrl: json['profile_picture_url'] as String?,
     );
   }
 
@@ -90,6 +91,7 @@ class PatientDetail {
         'phone': phone,
         'whatsapp_number': whatsappNumber,
         'whatsapp_linked': whatsappLinked,
+        'profile_picture_url': profilePictureUrl,
       };
 }
 
@@ -101,6 +103,7 @@ class DoctorDetail {
   final String specialization;
   final String? whatsappNumber;
   final bool whatsappLinked;
+  final String? profilePictureUrl;
 
   DoctorDetail({
     required this.id,
@@ -110,6 +113,7 @@ class DoctorDetail {
     required this.specialization,
     this.whatsappNumber,
     this.whatsappLinked = false,
+    this.profilePictureUrl,
   });
 
   bool get hasWhatsApp => whatsappLinked && (whatsappNumber ?? '').trim().isNotEmpty;
@@ -123,6 +127,7 @@ class DoctorDetail {
       specialization: json['specialization'] as String? ?? '',
       whatsappNumber: json['whatsapp_number'] as String?,
       whatsappLinked: json['whatsapp_linked'] as bool? ?? false,
+      profilePictureUrl: json['profile_picture_url'] as String?,
     );
   }
 
@@ -134,6 +139,7 @@ class DoctorDetail {
         'specialization': specialization,
         'whatsapp_number': whatsappNumber,
         'whatsapp_linked': whatsappLinked,
+        'profile_picture_url': profilePictureUrl,
       };
 }
 
@@ -294,19 +300,25 @@ class Appointment {
   factory Appointment.fromListJson(Map<String, dynamic> json) {
     return Appointment(
       id: TypeHelpers.toInt(json['id']),
-      patientDetail: PatientDetail(
-        id: 0,
-        fullName: json['patient_name'] as String? ?? '',
-        email: '',
-        phone: '',
-      ),
-      doctorDetail: DoctorDetail(
-        id: 0,
-        fullName: json['doctor_name'] as String? ?? '',
-        email: '',
-        phone: '',
-        specialization: json['specialization'] as String? ?? '',
-      ),
+      patientDetail: json['patient_detail'] != null
+          ? PatientDetail.fromJson(
+              json['patient_detail'] as Map<String, dynamic>)
+          : PatientDetail(
+              id: 0,
+              fullName: json['patient_name'] as String? ?? '',
+              email: '',
+              phone: '',
+            ),
+      doctorDetail: json['doctor_detail'] != null
+          ? DoctorDetail.fromJson(
+              json['doctor_detail'] as Map<String, dynamic>)
+          : DoctorDetail(
+              id: 0,
+              fullName: json['doctor_name'] as String? ?? '',
+              email: '',
+              phone: '',
+              specialization: json['specialization'] as String? ?? '',
+            ),
       slotDetail: null,
       appointmentDate: json['appointment_date'] as String? ?? '',
       appointmentTime: json['appointment_time'] as String? ?? '',

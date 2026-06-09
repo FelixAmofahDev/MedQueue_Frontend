@@ -178,15 +178,7 @@ class AppointmentCard extends StatelessWidget {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          AppColors.primaryBlue,
-                          AppColors.primaryGreen,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(15),
+                      shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.primaryBlue.withOpacity(0.25),
@@ -195,15 +187,29 @@ class AppointmentCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Center(
-                      child: Text(
-                        _initials(),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
+                    child: CircleAvatar(
+                      backgroundImage: (showPatientName
+                              ? appointment.patientDetail.profilePictureUrl
+                              : appointment.doctorDetail.profilePictureUrl)
+                          ?.isNotEmpty == true
+                          ? NetworkImage(showPatientName
+                              ? appointment.patientDetail.profilePictureUrl!
+                              : appointment.doctorDetail.profilePictureUrl!)
+                          : null,
+                      backgroundColor: const Color(0xFFE8F0FE),
+                      child: (showPatientName
+                              ? appointment.patientDetail.profilePictureUrl
+                              : appointment.doctorDetail.profilePictureUrl)
+                          ?.isNotEmpty != true
+                          ? Text(
+                              _initials(),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            )
+                          : null,
                     ),
                   ),
 

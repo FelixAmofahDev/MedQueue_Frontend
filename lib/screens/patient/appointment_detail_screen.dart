@@ -484,226 +484,242 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
     );
   }
 
-  Widget _buildInfoItem(IconData icon, String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 20, color: AppColors.textGray),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textGray,
+ 
+
+Widget _buildQueueInfoSection() {
+  if (_isLoadingQueueInfo) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: const SizedBox(
+        height: 120,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+              SizedBox(height: 12),
+              Text(
+                'Syncing live queue status...',
+                style: TextStyle(color: AppColors.textGray, fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return AppColors.warningOrange;
-      case 'confirmed':
-        return AppColors.infoBlue;
-      case 'completed':
-        return AppColors.successGreen;
-      case 'cancelled':
-        return AppColors.errorRed;
-      case 'no_show':
-        return AppColors.errorRed;
-      case 'rescheduled':
-        return AppColors.infoBlue;
-      default:
-        return AppColors.textGray;
-    }
-  }
-
-  Widget _buildQueueInfoSection() {
-    if (_isLoadingQueueInfo) {
-      return const Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: SizedBox(
-            height: 100,
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (_queueEntry == null) {
-      return const Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
+  if (_queueEntry == null) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0), style: BorderStyle.values[1]), // dashed border style
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.layers_clear_outlined, color: AppColors.textGray, size: 20),
+          SizedBox(width: 12),
+          Text(
             'Queue information not available',
             style: TextStyle(
               color: AppColors.textGray,
               fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ),
-      );
-    }
+        ],
+      ),
+    );
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Queue Title
-        const Padding(
-          padding: EdgeInsets.only(bottom: 12),
-          child: Text(
-            'Queue Status',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Padding(
+        padding: EdgeInsets.only(left: 4, bottom: 10),
+        child: Text(
+          'Live Queue Tracker',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textDark,
+            letterSpacing: -0.1,
           ),
         ),
-        
-        // Queue Card
-        Card(
-          elevation: 2,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Queue Number Badge
-                Center(
-                  child: Container(
-                    width: 100,
-                    height: 100,
+      ),
+      Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0F172A).withOpacity(0.03),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryBlue,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryBlue.withOpacity(0.3),
-                          blurRadius: 15,
-                          spreadRadius: 3,
+                      color: AppColors.primaryBlue.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.confirmation_num_outlined, color: AppColors.primaryBlue, size: 28),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'YOUR TICKET NUMBER',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textGray,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '#${_queueEntry!.queueNumber}',
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textDark,
+                            letterSpacing: -0.5,
+                          ),
                         ),
                       ],
                     ),
-                    child: Center(
-                      child: Text(
-                        '#${_queueEntry!.queueNumber}',
-                        style: const TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.primaryBlue.withOpacity(0.15)),
+                    ),
+                    child: Text(
+                      _getQueueStatusLabel(_queueEntry!.status).toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryBlue,
+                        letterSpacing: 0.3,
                       ),
                     ),
                   ),
+                ],
+              ),
+              if (_waitTimeInfo != null) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Divider(color: Color(0xFFF1F5F9), height: 1),
                 ),
-                const SizedBox(height: 20),
-                
-                // Status Row
                 Row(
                   children: [
-                    const Icon(
-                      Icons.info_outline,
-                      size: 18,
-                      color: AppColors.textGray,
-                    ),
-                    const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        'Status: ${_getQueueStatusLabel(_queueEntry!.status)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textDark,
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.people_alt_outlined, size: 14, color: AppColors.textGray),
+                                SizedBox(width: 6),
+                                Text(
+                                  'People Ahead',
+                                  style: TextStyle(color: AppColors.textGray, fontSize: 11, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '${_waitTimeInfo!.positionsAhead} Patients',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.hourglass_top_rounded, size: 14, color: AppColors.textGray),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Est. Wait Time',
+                                  style: TextStyle(color: AppColors.textGray, fontSize: 11, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '~ ${_waitTimeInfo!.estimatedWaitMinutes} mins',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                
-                // Positions Ahead Row
-                if (_waitTimeInfo != null) ...[
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.people_outline,
-                        size: 18,
-                        color: AppColors.textGray,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Positions ahead: ${_waitTimeInfo!.positionsAhead}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  
-                  // Estimated Wait Time Row
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.schedule_outlined,
-                        size: 18,
-                        color: AppColors.textGray,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Est. wait: ${_waitTimeInfo!.estimatedWaitMinutes} min',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ],
-            ),
+            ],
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   String _getQueueStatusLabel(QueueEntryStatus status) {
     switch (status) {
