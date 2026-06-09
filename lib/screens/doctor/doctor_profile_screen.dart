@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
 import '../../utils/app_colors.dart';
-import 'package:medqueue_frontend/screens/doctor/edit_doctor_profile_screen.dart';
+import '../doctor/edit_doctor_profile_screen.dart';
+import 'doctor_availability_screen.dart';
 import '../../widgets/custom_components.dart';
 
 class DoctorProfileScreen extends StatefulWidget {
@@ -21,7 +22,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       body: Consumer<AuthService>(
         builder: (context, authService, _) {
           final doctor = authService.currentUser;
-
+        debugPrint("profile url: ${doctor?.profilePictureUrl}");
           return SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Column(
@@ -410,6 +411,59 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                                 'Edit Profile',
                                 style: TextStyle(
                                   color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Manage Availability
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const DoctorAvailabilityScreen(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                                color: AppColors.primaryBlue.withOpacity(0.35)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryBlue.withOpacity(0.12),
+                                blurRadius: 10,
+                                spreadRadius: -2,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.calendar_today_rounded,
+                                color: AppColors.primaryBlue,
+                                size: 18,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'My Availability',
+                                style: TextStyle(
+                                  color: AppColors.primaryBlue,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 0.2,

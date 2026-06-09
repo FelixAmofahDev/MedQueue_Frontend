@@ -17,6 +17,7 @@ import '../screens/patient/doctor_detail_screen.dart';
 import '../screens/patient/appointment_booking_confirm_screen.dart';
 import '../screens/patient/appointment_history_screen.dart';
 import '../screens/doctor/doctor_home_screen.dart';
+import '../screens/doctor/doctor_availability_screen.dart';
 import '../screens/admin/admin_home_screen.dart';
 
 class AppRoutes {
@@ -45,6 +46,7 @@ class AppRoutes {
   // Doctor Routes
   static const String doctorHome = '/doctor-home';
   static const String doctorQueueDashboard = '/doctor/queue-dashboard';
+  static const String doctorAvailability = '/doctor/availability';
   
   // Admin Routes
   static const String adminHome = '/admin-home';
@@ -99,6 +101,7 @@ class AppRoutes {
       // Note: doctorQueueDashboard now maps to DoctorHomeScreen with Queue tab selected
       // The queue management is now integrated into the main DoctorHomeScreen
       doctorQueueDashboard: (context) => const DoctorHomeScreen(),
+      doctorAvailability: (context) => const DoctorAvailabilityScreen(),
       
       // Admin routes
       adminHome: (context) => const AdminHomeScreen(),

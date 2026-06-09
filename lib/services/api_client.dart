@@ -55,6 +55,18 @@ class ApiClient {
     );
   }
 
+  /// Perform a DELETE request with authentication
+  static Future<ApiResponse<T>> deleteWithAuth<T>(
+    String endpoint, {
+    required T Function(Map<String, dynamic>) parser,
+  }) async {
+    return _performAuthenticatedRequest(
+      method: 'DELETE',
+      endpoint: endpoint,
+      parser: parser,
+    );
+  }
+
   /// Perform a PATCH request with authentication
   static Future<ApiResponse<T>> patchWithAuth<T>(
     String endpoint, {

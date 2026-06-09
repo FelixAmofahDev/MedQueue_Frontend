@@ -1,10 +1,8 @@
-
 import 'package:medqueue_frontend/utils/api_constants.dart';
 
 import '../utils/type_helpers.dart';
 
 /// API Response Envelope
-
 
 /// API Response Envelope
 class ApiResponse<T> {
@@ -38,11 +36,11 @@ class ApiResponse<T> {
   }
 
   Map<String, dynamic> toJson() => {
-        'status': status,
-        'message': message,
-        'data': data,
-        'errors': errors,
-      };
+    'status': status,
+    'message': message,
+    'data': data,
+    'errors': errors,
+  };
 }
 
 /// Token Pair Model
@@ -50,10 +48,7 @@ class TokenPair {
   final String access;
   final String refresh;
 
-  TokenPair({
-    required this.access,
-    required this.refresh,
-  });
+  TokenPair({required this.access, required this.refresh});
 
   factory TokenPair.fromJson(Map<String, dynamic> json) {
     return TokenPair(
@@ -62,10 +57,7 @@ class TokenPair {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'access': access,
-        'refresh': refresh,
-      };
+  Map<String, dynamic> toJson() => {'access': access, 'refresh': refresh};
 }
 
 /// Decoded Token Claims
@@ -154,6 +146,7 @@ class UserProfile {
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
+    final rawPicUrl = json['profile_picture_url'] ?? '';
     return UserProfile(
       id: TypeHelpers.toInt(json['id']),
       username: json['username'] as String? ?? '',
@@ -166,7 +159,12 @@ class UserProfile {
       dateOfBirth: json['date_of_birth'] as String?,
       gender: json['gender'] as String?,
       address: json['address'] as String?,
-      profilePictureUrl: "${ApiConstants.mediaBaseUrl}${json['profile_picture_url'] ?? ''}" as String?,
+      profilePictureUrl: rawPicUrl.isEmpty
+          ? ''
+          : (rawPicUrl.startsWith('http://') ||
+                rawPicUrl.startsWith('https://'))
+          ? rawPicUrl as String?
+          : "${ApiConstants.mediaBaseUrl}$rawPicUrl" as String?,
       isPhoneVerified: json['is_phone_verified'] as bool? ?? false,
       isEmailVerified: json['is_email_verified'] as bool? ?? false,
       whatsappNumber: json['whatsapp_number'] as String?,
@@ -182,64 +180,32 @@ class UserProfile {
           : null,
       createdAt: DateTime.parse(json['created_at'] as String? ?? '2026-05-13'),
     );
-  }
-
-  factory UserProfile.fromJsonApi(Map<String, dynamic> json) {
-    final profile = UserProfile(
-      id: TypeHelpers.toInt(json['id']),
-      username: json['username'] as String? ?? '',
-      email: json['email'] as String? ?? '',
-      role: json['role'] as String? ?? 'patient',
-      firstName: json['first_name'] as String? ?? '',
-      lastName: json['last_name'] as String? ?? '',
-      fullName: json['full_name'] as String? ?? '',
-      phoneNumber: json['phone_number'] as String? ?? '',
-      dateOfBirth: json['date_of_birth'] as String?,
-      gender: json['gender'] as String?,
-      address: json['address'] as String?,
-      profilePictureUrl: "${ApiConstants.mediaBaseUrl}${json['profile_picture_url'] ?? ''}" as String?,
-      isPhoneVerified: json['is_phone_verified'] as bool? ?? false,
-      isEmailVerified: json['is_email_verified'] as bool? ?? false,
-      whatsappNumber: json['whatsapp_number'] as String?,
-      whatsappLinked: json['whatsapp_linked'] as bool? ?? false,
-      notifPush: json['notif_push'] as bool? ?? true,
-      notifSms: json['notif_sms'] as bool? ?? true,
-      notifWhatsapp: json['notif_whatsapp'] as bool? ?? false,
-      patientProfile: json['patient_profile'] != null
-          ? PatientProfile.fromJson(json['patient_profile'])
-          : null,
-      doctorProfile: json['doctor_profile'] != null
-          ? DoctorProfile.fromJson(json['doctor_profile'])
-          : null,
-      createdAt: DateTime.parse(json['created_at'] as String? ?? '2026-05-13'),
-    );
-    return profile;
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'username': username,
-        'email': email,
-        'role': role,
-        'first_name': firstName,
-        'last_name': lastName,
-        'full_name': fullName,
-        'phone_number': phoneNumber,
-        'date_of_birth': dateOfBirth,
-        'gender': gender,
-        'address': address,
-        'profile_picture_url': profilePictureUrl,
-        'is_phone_verified': isPhoneVerified,
-        'is_email_verified': isEmailVerified,
-        'whatsapp_number': whatsappNumber,
-        'whatsapp_linked': whatsappLinked,
-        'notif_push': notifPush,
-        'notif_sms': notifSms,
-        'notif_whatsapp': notifWhatsapp,
-        'patient_profile': patientProfile?.toJson(),
-        'doctor_profile': doctorProfile?.toJson(),
-        'created_at': createdAt.toIso8601String(),
-      };
+    'id': id,
+    'username': username,
+    'email': email,
+    'role': role,
+    'first_name': firstName,
+    'last_name': lastName,
+    'full_name': fullName,
+    'phone_number': phoneNumber,
+    'date_of_birth': dateOfBirth,
+    'gender': gender,
+    'address': address,
+    'profile_picture_url': profilePictureUrl,
+    'is_phone_verified': isPhoneVerified,
+    'is_email_verified': isEmailVerified,
+    'whatsapp_number': whatsappNumber,
+    'whatsapp_linked': whatsappLinked,
+    'notif_push': notifPush,
+    'notif_sms': notifSms,
+    'notif_whatsapp': notifWhatsapp,
+    'patient_profile': patientProfile?.toJson(),
+    'doctor_profile': doctorProfile?.toJson(),
+    'created_at': createdAt.toIso8601String(),
+  };
 }
 
 /// Patient Profile Model
@@ -269,12 +235,12 @@ class PatientProfile {
   }
 
   Map<String, dynamic> toJson() => {
-        'blood_group': bloodGroup,
-        'allergies': allergies,
-        'emergency_contact_name': emergencyContactName,
-        'emergency_contact_phone': emergencyContactPhone,
-        'medical_history': medicalHistory,
-      };
+    'blood_group': bloodGroup,
+    'allergies': allergies,
+    'emergency_contact_name': emergencyContactName,
+    'emergency_contact_phone': emergencyContactPhone,
+    'medical_history': medicalHistory,
+  };
 }
 
 /// Doctor Profile Model
@@ -308,20 +274,22 @@ class DoctorProfile {
       yearsOfExperience: TypeHelpers.toInt(json['years_of_experience']),
       isAcceptingPatients: json['is_accepting_patients'] as bool? ?? false,
       bio: json['bio'] as String?,
-      avgConsultationMinutes: TypeHelpers.toInt(json['avg_consultation_minutes']),
+      avgConsultationMinutes: TypeHelpers.toInt(
+        json['avg_consultation_minutes'],
+      ),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'specialization': specialization,
-        'medical_license_number': medicalLicense,
-        'hospital_name': hospitalName,
-        'consultation_fee': consultationFee,
-        'years_of_experience': yearsOfExperience,
-        'is_accepting_patients': isAcceptingPatients,
-        'bio': bio,
-        'avg_consultation_minutes': avgConsultationMinutes,
-      };
+    'specialization': specialization,
+    'medical_license_number': medicalLicense,
+    'hospital_name': hospitalName,
+    'consultation_fee': consultationFee,
+    'years_of_experience': yearsOfExperience,
+    'is_accepting_patients': isAcceptingPatients,
+    'bio': bio,
+    'avg_consultation_minutes': avgConsultationMinutes,
+  };
 }
 
 /// Login Response
@@ -329,10 +297,7 @@ class LoginResponse {
   final TokenPair tokens;
   final UserProfile user;
 
-  LoginResponse({
-    required this.tokens,
-    required this.user,
-  });
+  LoginResponse({required this.tokens, required this.user});
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
@@ -347,10 +312,7 @@ class RegisterResponse {
   final TokenPair tokens;
   final UserProfile user;
 
-  RegisterResponse({
-    required this.tokens,
-    required this.user,
-  });
+  RegisterResponse({required this.tokens, required this.user});
 
   factory RegisterResponse.fromJson(Map<String, dynamic> json) {
     return RegisterResponse(

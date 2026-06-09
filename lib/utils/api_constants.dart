@@ -22,6 +22,8 @@ class ApiConstants {
   static const String passwordResetRequestEndpoint = '/auth/password/reset/request/';
   static const String passwordResetConfirmEndpoint = '/auth/password/reset/confirm/';
 
+  static const String availabilityMyEndpoint = '/auth/availability/my/';
+
   // Timeouts
   static const Duration apiTimeout = Duration(seconds: 30);
 

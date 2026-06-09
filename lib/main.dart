@@ -9,6 +9,7 @@ import 'services/queue_service.dart';
 import 'services/emergency_service.dart';
 import 'services/chatbot_service.dart';
 import 'services/notification_service.dart';
+import 'services/availability_service.dart';
 import 'utils/app_colors.dart';
 import 'routes/app_routes.dart';
 import 'screens/auth/startup_wrapper.dart';
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => EmergencyService()),
         ChangeNotifierProvider(create: (_) => ChatbotService()),
         ChangeNotifierProvider(create: (_) => NotificationService()),
+        ChangeNotifierProvider(create: (_) => AvailabilityService()),
       ],
       child: MaterialApp(
         title: 'MedQueue GH',
