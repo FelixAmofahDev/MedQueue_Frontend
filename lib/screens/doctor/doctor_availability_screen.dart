@@ -52,7 +52,8 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
       'max_patients_per_day': _maxPatients,
     });
 
-    if (success && mounted) {
+    if (!mounted) return;
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Availability added successfully'),
@@ -60,7 +61,7 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
         ),
       );
       _resetForm();
-    } else if (mounted) {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(service.errorMessage ?? 'Failed to add availability'),
@@ -86,11 +87,162 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
     if (confirmed != true) return;
 
     final success = await service.deleteAvailabilityEntry(id);
-    if (success && mounted) {
+    if (!mounted) return;
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Availability removed'),
           backgroundColor: AppColors.primaryGreen,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(service.errorMessage ?? 'Failed to remove availability'),
+          backgroundColor: AppColors.emergencyRed,
+        ),
+      );
+    }
+  }
+
+  Future<void> _openEditDialog(DoctorSchedule schedule) async {
+    final service = context.read<AvailabilityService>();
+    final startParts = schedule.startTime.split(':');
+    final endParts = schedule.endTime.split(':');
+    var selectedDay = schedule.day;
+    var startTime = TimeOfDay(
+      hour: int.tryParse(startParts.first) ?? 8,
+      minute: int.tryParse(startParts.last) ?? 0,
+    );
+    var endTime = TimeOfDay(
+      hour: int.tryParse(endParts.first) ?? 17,
+      minute: int.tryParse(endParts.last) ?? 0,
+    );
+    var slotDuration = schedule.slotDurationMinutes;
+    var maxPatients = schedule.maxPatientsPerDay;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Edit availability'),
+          content: SizedBox(
+            width: 320,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _DaySelector(
+                  selectedDay: selectedDay,
+                  onChanged: (d) => setDialogState(() => selectedDay = d),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _DialogTimeField(
+                        label: 'Start time',
+                        icon: Icons.access_time_rounded,
+                        time: startTime,
+                        onPick: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: startTime,
+                          );
+                          if (picked != null && mounted) {
+                            setDialogState(() => startTime = picked);
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _DialogTimeField(
+                        label: 'End time',
+                        icon: Icons.access_time_filled_rounded,
+                        time: endTime,
+                        onPick: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: endTime,
+                          );
+                          if (picked != null && mounted) {
+                            setDialogState(() => endTime = picked);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _DropdownField<int>(
+                        label: 'Slot duration (min)',
+                        icon: Icons.timer_rounded,
+                        value: slotDuration,
+                        items: const [15, 20, 30],
+                        onChanged: (v) =>
+                            setDialogState(() => slotDuration = v ?? 15),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _DropdownField<int>(
+                        label: 'Max patients / day',
+                        icon: Icons.people_rounded,
+                        value: maxPatients,
+                        items: const [10, 20, 30, 50],
+                        onChanged: (v) =>
+                            setDialogState(() => maxPatients = v ?? 30),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final body = <String, dynamic>{
+                  'day_of_week': selectedDay.value,
+                  'start_time':
+                      '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}',
+                  'end_time':
+                      '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}',
+                  'slot_duration_minutes': slotDuration,
+                  'max_patients_per_day': maxPatients,
+                };
+                final success = await service.updateAvailabilityEntry(schedule.id, body);
+                if (mounted) {
+                  Navigator.of(context).pop(success);
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    if (result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Availability updated'),
+          backgroundColor: AppColors.primaryGreen,
+        ),
+      );
+    } else if (result == false) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(service.errorMessage ?? 'Failed to update availability'),
+          backgroundColor: AppColors.emergencyRed,
         ),
       );
     }
@@ -188,6 +340,7 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                   (s) => _ScheduleTile(
                     schedule: s,
                     onDelete: () => _deleteEntry(s.id),
+                    onEdit: () => _openEditDialog(s),
                   ),
                 ),
               const SizedBox(height: 24),
@@ -338,8 +491,13 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
 class _ScheduleTile extends StatelessWidget {
   final DoctorSchedule schedule;
   final VoidCallback onDelete;
+  final VoidCallback onEdit;
 
-  const _ScheduleTile({required this.schedule, required this.onDelete});
+  const _ScheduleTile({
+    required this.schedule,
+    required this.onDelete,
+    required this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -393,6 +551,14 @@ class _ScheduleTile extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            onPressed: onEdit,
+            icon: Icon(
+              Icons.edit_calendar_sharp,
+              color: AppColors.primaryBlue.withOpacity(0.85),
+            ),
+            tooltip: 'Edit',
           ),
           IconButton(
             onPressed: onDelete,
@@ -451,6 +617,68 @@ class _DaySelector extends StatelessWidget {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+}
+
+class _DialogTimeField extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final TimeOfDay time;
+  final VoidCallback onPick;
+
+  const _DialogTimeField({
+    required this.label,
+    required this.icon,
+    required this.time,
+    required this.onPick,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final formatted =
+        '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderColor.withOpacity(0.4)),
+      ),
+      child: InkWell(
+        onTap: onPick,
+        borderRadius: BorderRadius.circular(14),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: AppColors.primaryBlue),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textGray,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    formatted,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
