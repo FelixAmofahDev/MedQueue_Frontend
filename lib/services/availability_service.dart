@@ -80,7 +80,7 @@ class AvailabilityService extends ChangeNotifier {
         return true;
       }
 
-      _errorMessage = response.message;
+      _errorMessage = _extractErrorMessage(response.message, response.errors);
       _fieldErrors = response.errors;
       _isLoading = false;
       notifyListeners();
@@ -118,7 +118,7 @@ class AvailabilityService extends ChangeNotifier {
         return true;
       }
 
-      _errorMessage = response.message;
+      _errorMessage = _extractErrorMessage(response.message, response.errors);
       _fieldErrors = response.errors;
       _isLoading = false;
       notifyListeners();
@@ -151,7 +151,7 @@ class AvailabilityService extends ChangeNotifier {
         return true;
       }
 
-      _errorMessage = response.message;
+      _errorMessage = _extractErrorMessage(response.message, response.errors);
       _fieldErrors = response.errors;
       _isLoading = false;
       notifyListeners();
@@ -168,5 +168,53 @@ class AvailabilityService extends ChangeNotifier {
     _errorMessage = null;
     _fieldErrors = null;
     notifyListeners();
+  }
+
+  String _extractErrorMessage(String? message, Map<String, dynamic>? errors) {
+    if (errors == null || errors.isEmpty) {
+      return _friendlyAvailabilityMessage(message ?? 'Request failed.');
+    }
+
+    final preferredKeys = ['detail', 'non_field_errors', 'message'];
+    for (final key in preferredKeys) {
+      final value = errors[key];
+      final extracted = _stringifyErrorValue(value);
+      if (extracted != null && extracted.isNotEmpty) {
+        return _friendlyAvailabilityMessage(extracted);
+      }
+    }
+
+    for (final value in errors.values) {
+      final extracted = _stringifyErrorValue(value);
+      if (extracted != null && extracted.isNotEmpty) {
+        return _friendlyAvailabilityMessage(extracted);
+      }
+    }
+
+    return _friendlyAvailabilityMessage(message ?? 'Request failed.');
+  }
+
+  String _friendlyAvailabilityMessage(String message) {
+    final normalized = message.toLowerCase();
+    if (normalized.contains('unique set') ||
+        normalized.contains('already exists') ||
+        normalized.contains('active schedule')) {
+      return 'This availability already exists. Please update the existing schedule instead.';
+    }
+
+    return message;
+  }
+
+  String? _stringifyErrorValue(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is String) {
+      return value;
+    }
+    if (value is List && value.isNotEmpty) {
+      return value.first.toString();
+    }
+    return value.toString();
   }
 }
