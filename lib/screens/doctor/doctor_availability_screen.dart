@@ -20,6 +20,10 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
   TimeOfDay _endTime = const TimeOfDay(hour: 17, minute: 0);
   int _slotDuration = 15;
   int _maxPatients = 30;
+  
+  // Per-action loading states
+  bool _addingSchedule = false;
+  int? _deletingScheduleId;
 
   @override
   void initState() {
@@ -39,6 +43,8 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
+    setState(() => _addingSchedule = true);
+
     final startStr =
         '${_startTime.hour.toString().padLeft(2, '0')}:${_startTime.minute.toString().padLeft(2, '0')}';
     final endStr =
@@ -53,6 +59,8 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
     });
 
     if (!mounted) return;
+    setState(() => _addingSchedule = false);
+    
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -86,8 +94,11 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
     );
     if (confirmed != true) return;
 
+    setState(() => _deletingScheduleId = id);
     final success = await service.deleteAvailabilityEntry(id);
     if (!mounted) return;
+    setState(() => _deletingScheduleId = null);
+    
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -264,15 +275,32 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBlue,
-        title: const Text(
-          'My Availability',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primaryBlue, AppColors.primaryGreen],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        title: Column(
+          children: [
+            const Text(
+            'My Availability',
+              style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3),
+            ),
+           
+          ],
         ),
+       
       ),
       body: Consumer<AvailabilityService>(
         builder: (context, service, _) {
@@ -282,55 +310,103 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
             padding: const EdgeInsets.all(16),
             physics: const BouncingScrollPhysics(),
             children: [
-              const Text(
-                'Active schedule',
-                style: TextStyle(
-                  color: AppColors.textGray,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
+              // Active Schedule Section
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Active Schedule',
+                      style: TextStyle(
+                        color: AppColors.textDark,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Manage your working days and hours',
+                      style: TextStyle(
+                        color: AppColors.textGray,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 12),
               if (service.isLoading && schedules.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(
-                    child: CircularProgressIndicator(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Column(
+                    children: [
+                      const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primaryBlue,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Loading schedules...',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textGray,
+                        ),
+                      ),
+                    ],
                   ),
                 )
               else if (schedules.isEmpty)
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(28),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.borderColor.withOpacity(0.4)),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.borderColor.withOpacity(0.3),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadowColor.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
-                      Icon(
-                        Icons.event_busy_rounded,
-                        size: 40,
-                        color: AppColors.textGray.withOpacity(0.7),
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          Icons.event_busy_rounded,
+                          size: 32,
+                          color: AppColors.primaryBlue,
+                        ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       const Text(
                         'No availability set',
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
                           color: AppColors.textDark,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8),
                       Text(
-                        'Add your working days below.',
+                        'Add your working days below to get started',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: AppColors.textGray,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
@@ -339,34 +415,53 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                 ...schedules.map(
                   (s) => _ScheduleTile(
                     schedule: s,
+                    isDeleting: _deletingScheduleId == s.id,
                     onDelete: () => _deleteEntry(s.id),
                     onEdit: () => _openEditDialog(s),
                   ),
                 ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
-              const Text(
-                'Add schedule entry',
-                style: TextStyle(
-                  color: AppColors.textGray,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
+              // Add Schedule Section
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Add Schedule Entry',
+                      style: TextStyle(
+                        color: AppColors.textDark,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Create a new availability slot',
+                      style: TextStyle(
+                        color: AppColors.textGray,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 12),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.borderColor.withOpacity(0.4)),
+                  border: Border.all(
+                    color: AppColors.borderColor.withOpacity(0.3),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.shadowColor.withOpacity(0.05),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -378,7 +473,7 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                         selectedDay: _selectedDay,
                         onChanged: (d) => setState(() => _selectedDay = d),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       Row(
                         children: [
                           Expanded(
@@ -416,12 +511,12 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       Row(
                         children: [
                           Expanded(
                             child: _DropdownField<int>(
-                              label: 'Slot duration (min)',
+                              label: 'Slot duration',
                               icon: Icons.timer_rounded,
                               value: _slotDuration,
                               items: const [15, 20, 30],
@@ -432,7 +527,7 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: _DropdownField<int>(
-                              label: 'Max patients / day',
+                              label: 'Max patients',
                               icon: Icons.people_rounded,
                               value: _maxPatients,
                               items: const [10, 20, 30, 50],
@@ -442,38 +537,65 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: service.isLoading
-                              ? null
-                              : _addScheduleEntry,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryBlue,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          child: service.isLoading
-                              ? const SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'Add availability',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                        ),
+                        child:Container(
+  width: double.infinity,
+  decoration: BoxDecoration(
+    gradient: _addingSchedule
+        ? LinearGradient(
+            colors: [
+              AppColors.primaryBlue.withOpacity(0.6),
+              AppColors.primaryGreen.withOpacity(0.6),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+        : const LinearGradient(
+            colors: [
+              AppColors.primaryGreen,
+              AppColors.primaryBlue,
+              
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+    borderRadius: BorderRadius.circular(14),
+  ),
+  child: ElevatedButton(
+    onPressed: _addingSchedule ? null : _addScheduleEntry,
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      elevation: 0,
+    ),
+    child: _addingSchedule
+        ? const SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Colors.white,
+              ),
+            ),
+          )
+        : const Text(
+            'Add Availability',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
+            ),
+          ),
+  ),
+)
                       ),
                     ],
                   ),
@@ -492,11 +614,13 @@ class _ScheduleTile extends StatelessWidget {
   final DoctorSchedule schedule;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
+  final bool isDeleting;
 
   const _ScheduleTile({
     required this.schedule,
     required this.onDelete,
     required this.onEdit,
+    this.isDeleting = false,
   });
 
   @override
@@ -506,12 +630,19 @@ class _ScheduleTile extends StatelessWidget {
     final end = schedule.endTime;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.borderColor.withOpacity(0.35)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -519,7 +650,7 @@ class _ScheduleTile extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.08),
+              color: AppColors.primaryBlue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -552,22 +683,38 @@ class _ScheduleTile extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: onEdit,
-            icon: Icon(
-              Icons.edit_calendar_sharp,
-              color: AppColors.primaryBlue.withOpacity(0.85),
+          if (isDeleting)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.emergencyRed.withOpacity(0.7),
+                  ),
+                ),
+              ),
+            )
+          else ...[
+            IconButton(
+              onPressed: onEdit,
+              icon: Icon(
+                Icons.edit_calendar_sharp,
+                color: AppColors.primaryGreen.withOpacity(0.7),
+              ),
+              tooltip: 'Edit',
             ),
-            tooltip: 'Edit',
-          ),
-          IconButton(
-            onPressed: onDelete,
-            icon: Icon(
-              Icons.delete_outline_rounded,
-              color: AppColors.emergencyRed.withOpacity(0.85),
+            IconButton(
+              onPressed: onDelete,
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                color: AppColors.emergencyRed.withOpacity(0.7),
+              ),
+              tooltip: 'Remove',
             ),
-            tooltip: 'Remove',
-          ),
+          ],
         ],
       ),
     );
