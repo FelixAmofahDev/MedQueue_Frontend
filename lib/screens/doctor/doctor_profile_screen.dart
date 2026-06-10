@@ -15,6 +15,24 @@ class DoctorProfileScreen extends StatefulWidget {
 }
 
 class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
+  void _openAvailabilityScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const DoctorAvailabilityScreen(),
+      ),
+    );
+  }
+
+  void _openEditProfileScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const DoctorEditProfileScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,69 +87,93 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                         ),
                       ),
 
+                      Positioned(
+                        top: 20,
+                        right: 20,
+                        child: _HeroActionPill(
+                          icon: Icons.calendar_month_rounded,
+                          label: 'My Availability',
+                          onTap: _openAvailabilityScreen,
+                        ),
+                      ),
+
                       Padding(
                         padding: const EdgeInsets.fromLTRB(24, 24, 24, 36),
                         child: Column(
                           children: [
-                       // Avatar
-                       doctor?.profilePictureUrl != null && doctor?.profilePictureUrl?.isNotEmpty == true
-                           ? Container(
-                               width: 96,
-                               height: 96,
-                               decoration: BoxDecoration(
-                                 shape: BoxShape.circle,
-                                 border: Border.all(
-                                   color: Colors.white.withOpacity(0.5),
-                                   width: 3,
-                                 ),
-                                 boxShadow: [
-                                   BoxShadow(
-                                     color: Colors.black.withOpacity(0.15),
-                                     blurRadius: 20,
-                                     offset: const Offset(0, 8),
-                                   ),
-                                 ],
-                               ),
-                               child: ClipOval(
-                                 child: Image.network(
-                                   doctor!.profilePictureUrl!,
-                                   fit: BoxFit.cover,
-                                   width: 96,
-                                   height: 96,
-                                   errorBuilder: (context, error, stackTrace) {
-                                     return const Icon(
-                                       Icons.local_hospital_rounded,
-                                       size: 52,
-                                       color: Colors.white,
-                                     );
-                                   },
-                                 ),
-                               ),
-                             )
-                           : Container(
-                               width: 96,
-                               height: 96,
-                               decoration: BoxDecoration(
-                                 shape: BoxShape.circle,
-                                 color: Colors.white.withOpacity(0.2),
-                                 border: Border.all(
-                                   color: Colors.white.withOpacity(0.5),
-                                   width: 3,
-                                 ),
-                                 boxShadow: [
-                                   BoxShadow(
-                                     color: Colors.black.withOpacity(0.15),
-                                     blurRadius: 20,
-                                     offset: const Offset(0, 8),
-                                   ),
-                                 ],
-                               ),
-                               child: const Icon(
-                                 Icons.local_hospital_rounded,
-                                 size: 52,
-                                 color: Colors.white,
-                               ),
-                             ),
+                            Stack(
+                              alignment: Alignment.bottomRight,
+                              children: [
+                                doctor?.profilePictureUrl != null &&
+                                        doctor?.profilePictureUrl?.isNotEmpty ==
+                                            true
+                                    ? Container(
+                                        width: 96,
+                                        height: 96,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Colors.white.withOpacity(0.5),
+                                            width: 3,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.15),
+                                              blurRadius: 20,
+                                              offset: const Offset(0, 8),
+                                            ),
+                                          ],
+                                        ),
+                                        child: ClipOval(
+                                          child: Image.network(
+                                            doctor!.profilePictureUrl!,
+                                            fit: BoxFit.cover,
+                                            width: 96,
+                                            height: 96,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return const Icon(
+                                                Icons.local_hospital_rounded,
+                                                size: 52,
+                                                color: Colors.white,
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      )
+                                    : Container(
+                                        width: 96,
+                                        height: 96,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.white.withOpacity(0.2),
+                                          border: Border.all(
+                                            color: Colors.white.withOpacity(0.5),
+                                            width: 3,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.15),
+                                              blurRadius: 20,
+                                              offset: const Offset(0, 8),
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Icon(
+                                          Icons.local_hospital_rounded,
+                                          size: 52,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  child: _AvatarEditButton(
+                                    onTap: _openEditProfileScreen,
+                                  ),
+                                ),
+                              ],
+                            ),
 
                             const SizedBox(height: 16),
 
@@ -365,117 +407,6 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     children: [
-                      // Edit Profile
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const DoctorEditProfileScreen(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                AppColors.primaryBlue,
-                                AppColors.primaryGreen,
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primaryBlue.withOpacity(0.35),
-                                blurRadius: 16,
-                                spreadRadius: -2,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.edit_rounded,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Edit Profile',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // Manage Availability
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const DoctorAvailabilityScreen(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                                color: AppColors.primaryBlue.withOpacity(0.35)),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primaryBlue.withOpacity(0.12),
-                                blurRadius: 10,
-                                spreadRadius: -2,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.calendar_today_rounded,
-                                color: AppColors.primaryBlue,
-                                size: 18,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'My Availability',
-                                style: TextStyle(
-                                  color: AppColors.primaryBlue,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
                       // Logout
                       GestureDetector(
                         onTap: () => _showLogoutDialog(context, authService),
@@ -543,6 +474,91 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
 
           navigator.pushNamedAndRemoveUntil('/login', (route) => false);
         },
+      ),
+    );
+  }
+}
+
+class _AvatarEditButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _AvatarEditButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: AppColors.textGray.withOpacity(0.6),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryBlue.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.edit_rounded,
+            color: Colors.white,
+            size: 18,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroActionPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _HeroActionPill({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withOpacity(0.15),
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.white.withOpacity(0.28)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: Colors.white),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.1,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
