@@ -303,7 +303,6 @@ class ConfirmDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
-            Navigator.pop(context);
             onConfirm();
           },
           style: TextButton.styleFrom(
