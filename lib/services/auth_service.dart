@@ -529,7 +529,7 @@ class AuthService extends ChangeNotifier {
         }
       }
     } catch (e) {
-      _errorMessage = 'Registration failed: ${e.toString()}';
+      _errorMessage = 'System error, wait and log in after some minutes}';
       _isLoading = false;
       notifyListeners();
       return false;

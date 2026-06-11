@@ -18,6 +18,7 @@ class HomeContentScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
         flexibleSpace: Container(
@@ -31,6 +32,7 @@ class HomeContentScreen extends StatelessWidget {
         ),
         foregroundColor: Colors.white,
         centerTitle: true,
+        
         title: const Text(
           'MedQueue GH',
           style: TextStyle(

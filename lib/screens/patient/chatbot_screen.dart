@@ -172,12 +172,13 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         ),
         foregroundColor: Colors.white,
         centerTitle: true,
-        leading: IconButton(
+       
+        actions: [
+          IconButton(
           icon: const Icon(Icons.forum_outlined),
           onPressed: _openConversationSheet,
           tooltip: 'Conversations',
         ),
-        actions: [
           IconButton(
             icon: const Icon(Icons.add_comment_outlined),
             onPressed: _startNewChat,
