@@ -2,7 +2,6 @@ import 'package:http/http.dart' as http;
 import 'package:medqueue_frontend/utils/api_constants.dart';
 import 'package:medqueue_frontend/utils/token_manager.dart';
 import 'dart:convert';
-import 'dart:io';
 import '../models/api_response_model.dart';
 
 /// HTTP API Client with automatic token refresh and error handling

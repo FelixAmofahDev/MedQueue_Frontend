@@ -7,6 +7,16 @@ import 'api_constants.dart';
 class TokenManager {
   static const _storage = FlutterSecureStorage();
 
+  /// Write arbitrary string data for app-level persistence.
+  static Future<void> writeRaw(String key, String value) async {
+    await _storage.write(key: key, value: value);
+  }
+
+  /// Read arbitrary string data for app-level persistence.
+  static Future<String?> readRaw(String key) async {
+    return await _storage.read(key: key);
+  }
+
   /// Save both access and refresh tokens
   static Future<void> saveTokens(String access, String refresh) async {
     await Future.wait([

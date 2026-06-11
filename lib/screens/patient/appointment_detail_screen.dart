@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medqueue_frontend/models/appointment_model.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../services/appointment_service.dart';
 import '../../services/doctor_service.dart';
 import '../../services/queue_service.dart';
@@ -9,7 +8,6 @@ import '../../utils/app_colors.dart';
 import '../../widgets/custom_components.dart';
 import '../../widgets/slot_grid.dart';
 import '../../widgets/appointment_card.dart';
-import '../../models/doctor_model.dart';
 import '../../models/time_slot_model.dart';
 import '../../models/queue_model.dart';
 

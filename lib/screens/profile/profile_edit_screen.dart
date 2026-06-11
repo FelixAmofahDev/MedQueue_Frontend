@@ -53,7 +53,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   bool _notifPush = true;
   bool _notifSms = true;
   bool _notifWhatsapp = false;
-  bool _isAcceptingPatients = false;
+  final bool _isAcceptingPatients = false;
   File? _selectedImage;
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -266,8 +266,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
       payload.removeWhere((key, value) {
         if (key == 'doctor_profile') return false;
-        if (key == 'profile_picture' || key == 'profile_picture_url')
+        if (key == 'profile_picture' || key == 'profile_picture_url') {
           return false;
+        }
         return value == null || (value is String && value.trim().isEmpty);
       });
 

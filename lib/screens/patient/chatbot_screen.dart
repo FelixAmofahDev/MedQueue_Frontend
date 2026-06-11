@@ -15,7 +15,127 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
 
-  void _scrollToBottom() {
+  Future<void> _startNewChat() async {
+    await context.read<ChatbotService>().createNewChat();
+    if (!mounted) return;
+    _messageController.clear();
+    _scrollToBottom();
+  }
+
+  Future<void> _sendCurrentMessage() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
+    _messageController.clear();
+    await context.read<ChatbotService>().sendMessage(text);
+    if (!mounted) return;
+    _scrollToBottom();
+  }
+
+  Future<void> _openConversationSheet() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Consumer<ChatbotService>(
+            builder: (context, service, _) {
+              final chatThreads = service.threads;
+              return SizedBox(
+                height: MediaQuery.of(context).size.height * 0.65,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Conversations',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          const Spacer(),
+                          TextButton.icon(
+                            onPressed: () async {
+                              await context.read<ChatbotService>().createNewChat();
+                              if (!mounted) return;
+                              Navigator.of(sheetContext).pop();
+                              _scrollToBottom();
+                            },
+                            icon: const Icon(Icons.add_comment_outlined, size: 18),
+                            label: const Text('New chat'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: chatThreads.length,
+                        itemBuilder: (context, index) {
+                          final thread = chatThreads[index];
+                          final isActive = thread.id == service.activeThreadId;
+                          return ListTile(
+                            selected: isActive,
+                            selectedTileColor: AppColors.primaryBlue.withOpacity(0.08),
+                            leading: Icon(
+                              Icons.chat_bubble_outline_rounded,
+                              color: isActive ? AppColors.primaryBlue : AppColors.textGray,
+                            ),
+                            title: Text(
+                              thread.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: isActive ? AppColors.primaryBlue : AppColors.textDark,
+                                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${thread.messages.length} messages',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete_outline_rounded, color: AppColors.errorRed),
+                              onPressed: () async {
+                                await context.read<ChatbotService>().deleteThread(thread.id);
+                              },
+                            ),
+                            onTap: () async {
+                              await context.read<ChatbotService>().switchThread(thread.id);
+                              if (!mounted) return;
+                              Navigator.of(sheetContext).pop();
+                              _scrollToBottom();
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<ChatbotService>().loadChatHistory(forceReload: true);
+      _scrollToBottom();
+    });
+  }
+
+  Future<void> _scrollToBottom() async {
     if (_scrollController.hasClients) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollController.animateTo(
@@ -52,12 +172,24 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         ),
         foregroundColor: Colors.white,
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.forum_outlined),
+          onPressed: _openConversationSheet,
+          tooltip: 'Conversations',
+        ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.add_comment_outlined),
+            onPressed: _startNewChat,
+            tooltip: 'New chat',
+          ),
+          IconButton(
             icon: const Icon(Icons.delete_outline),
-            onPressed: () {
-              context.read<ChatbotService>().clearMessages();
-              ScaffoldMessenger.of(context).showSnackBar(
+            onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              await context.read<ChatbotService>().clearMessages();
+              if (!mounted) return;
+              messenger.showSnackBar(
                 const SnackBar(content: Text('Chat cleared')),
               );
             },
@@ -72,7 +204,14 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.3),
             ),
-           
+            Consumer<ChatbotService>(
+              builder: (context, service, _) => Text(
+                service.activeThreadTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 11, color: Colors.white70),
+              ),
+            ),
           ],
         ),
        
@@ -243,13 +382,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   ),
                   maxLines: null,
                   textInputAction: TextInputAction.send,
-                  onSubmitted: (value) {
-                    if (value.trim().isNotEmpty) {
-                      context.read<ChatbotService>().sendMessage(value.trim());
-                      _messageController.clear();
-                      _scrollToBottom();
-                    }
-                  },
+                  onSubmitted: (_) => _sendCurrentMessage(),
                 ),
               ),
               const SizedBox(width: 8),
@@ -262,13 +395,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   icon: const Icon(Icons.send, color: Colors.white),
                   onPressed: chatbotService.isLoading
                       ? null
-                      : () {
-                          if (_messageController.text.trim().isNotEmpty) {
-                            context.read<ChatbotService>().sendMessage(_messageController.text.trim());
-                            _messageController.clear();
-                            _scrollToBottom();
-                          }
-                        },
+                      : _sendCurrentMessage,
                 ),
               ),
             ],
@@ -478,7 +605,7 @@ class _LoadingBubble extends StatelessWidget {
 
 class _SuggestionChip extends StatelessWidget {
   final String text;
-  final VoidCallback onTapped;
+  final Future<void> Function() onTapped;
 
   const _SuggestionChip({
     required this.text,
@@ -488,9 +615,9 @@ class _SuggestionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        context.read<ChatbotService>().sendMessage(text);
-        onTapped();
+      onTap: () async {
+        await context.read<ChatbotService>().sendMessage(text);
+        await onTapped();
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

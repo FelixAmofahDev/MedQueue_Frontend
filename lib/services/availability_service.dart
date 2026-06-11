@@ -68,7 +68,7 @@ class AvailabilityService extends ChangeNotifier {
       final response = await ApiClient.postWithAuth<Map<String, dynamic>>(
         ApiConstants.availabilityMyEndpoint,
         body: body,
-        parser: (json) => json as Map<String, dynamic>,
+        parser: (json) => json,
       );
 
       if (response.isSuccess && response.data != null) {
@@ -104,7 +104,7 @@ class AvailabilityService extends ChangeNotifier {
       final response = await ApiClient.patchWithAuth<Map<String, dynamic>>(
         endpoint,
         body: body,
-        parser: (json) => json as Map<String, dynamic>,
+        parser: (json) => json,
       );
 
       if (response.isSuccess && response.data != null) {
@@ -141,7 +141,7 @@ class AvailabilityService extends ChangeNotifier {
       final endpoint = '${ApiConstants.availabilityMyEndpoint}$id/';
       final response = await ApiClient.deleteWithAuth<Map<String, dynamic>>(
         endpoint,
-        parser: (json) => json as Map<String, dynamic>,
+        parser: (json) => json,
       );
 
       if (response.isSuccess) {

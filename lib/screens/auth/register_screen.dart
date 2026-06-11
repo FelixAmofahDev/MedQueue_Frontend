@@ -39,6 +39,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   File? _selectedImage;
   final ImagePicker _imagePicker = ImagePicker();
 
+  bool _hasSpecialCharacter(String value) {
+    final specialCharRegex = RegExp(r'[!@#\$%^&*(),.?":{}|<>_\-\\/\[\]`~+=;]');
+    return specialCharRegex.hasMatch(value);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -110,7 +115,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
           : _emergencyPhoneController.text.trim(),
       profilePicturePath: _selectedImage?.path,
     );
-    if (success && mounted) _showOTPDialog(authService);
+    if (!mounted) return;
+    if (success) {
+      _showOTPDialog(authService);
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Sign up failed, ensure correct inputs'),
+        backgroundColor: AppColors.errorRed,
+      ),
+    );
   }
 
   void _showOTPDialog(AuthService authService) {
@@ -389,8 +405,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ? (authService.fieldErrors!['username'] as List).first
                                 : null,
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Username is required';
-                              if (v.length < 3) return 'At least 3 characters';
+                              final value = v?.trim() ?? '';
+                              if (value.isEmpty) return 'Username is required';
+                              if (value.length < 3) return 'At least 3 characters';
                               return null;
                             },
                           ),
@@ -405,8 +422,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ? (authService.fieldErrors!['email'] as List).first
                                 : null,
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Email is required';
-                              if (!v.contains('@')) return 'Enter a valid email';
+                              final value = v?.trim() ?? '';
+                              if (value.isEmpty) return 'Email is required';
+                              if (!value.contains('@')) return 'Enter a valid email';
                               return null;
                             },
                           ),
@@ -424,9 +442,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   label: 'First Name',
                                   icon: Icons.badge_rounded,
                                   enabled: !authService.isLoading,
-                                  validator: (v) => v == null || v.isEmpty
-                                      ? 'Required'
-                                      : null,
+                                  validator: (v) {
+                                    final value = v?.trim() ?? '';
+                                    return value.isEmpty ? 'First name is required' : null;
+                                  },
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -436,9 +455,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   label: 'Last Name',
                                   icon: Icons.badge_rounded,
                                   enabled: !authService.isLoading,
-                                  validator: (v) => v == null || v.isEmpty
-                                      ? 'Required'
-                                      : null,
+                                  validator: (v) {
+                                    final value = v?.trim() ?? '';
+                                    return value.isEmpty ? 'Last name is required' : null;
+                                  },
                                 ),
                               ),
                             ],
@@ -447,7 +467,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           // Gender dropdown
                           DropdownButtonFormField<String>(
-                            value: _selectedGender,
+                            initialValue: _selectedGender,
                             decoration: InputDecoration(
                               labelText: 'Gender',
                               prefixIcon: const Icon(Icons.wc_rounded,
@@ -630,8 +650,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ? (authService.fieldErrors!['phone_number'] as List).first
                                 : null,
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Phone number is required';
-                              if (v.length < 10) return 'Enter a valid phone number';
+                              final value = v?.trim() ?? '';
+                              if (value.isEmpty) return 'Phone number is required';
+                              if (value.length < 10) return 'Enter a valid phone number';
                               return null;
                             },
                           ),
@@ -652,7 +673,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           // Blood Group
                           DropdownButtonFormField<String>(
-                            value: _bloodGroupController.text.isEmpty
+                            initialValue: _bloodGroupController.text.isEmpty
                                 ? null
                                 : _bloodGroupController.text,
                             decoration: InputDecoration(
@@ -716,7 +737,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             icon: Icons.lock_outline_rounded,
                             obscure: _obscurePassword,
                             enabled: !authService.isLoading,
-                            hint: 'At least 8 characters',
+                            hint: 'At least 6 characters and a special character',
                             suffix: IconButton(
                               icon: Icon(
                                 _obscurePassword
@@ -729,8 +750,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   () => _obscurePassword = !_obscurePassword),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Password is required';
-                              if (v.length < 8) return 'At least 8 characters';
+                              final value = v ?? '';
+                              if (value.isEmpty) return 'Password is required';
+                              if (value.length < 6) return 'Password must be at least 6 characters';
+                              if (!_hasSpecialCharacter(value)) {
+                                return 'Password must include at least one special character';
+                              }
                               return null;
                             },
                           ),
@@ -754,8 +779,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       !_obscurePasswordConfirm),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Please confirm your password';
-                              if (v != _passwordController.text) return 'Passwords do not match';
+                              final value = v ?? '';
+                              if (value.isEmpty) return 'Please confirm your password';
+                              if (value != _passwordController.text) return 'Passwords do not match';
                               return null;
                             },
                           ),

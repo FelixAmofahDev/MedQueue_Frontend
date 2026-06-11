@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 
 import 'package:medqueue_frontend/utils/app_colors.dart';
 
