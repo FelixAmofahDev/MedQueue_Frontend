@@ -244,7 +244,7 @@ await authService.sendOTP(
 // Verify OTP
 await authService.verifyOTP(
   phoneNumber: phoneNumber,
-  code: '123456',
+  code: '1234',
   purpose: OtpPurpose.phoneReg.value,
 );
 ```

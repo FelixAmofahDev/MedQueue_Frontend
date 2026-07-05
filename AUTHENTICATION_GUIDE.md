@@ -324,7 +324,7 @@ All endpoints return a **standardized envelope** format:
 
 ### 2. POST /auth/otp/send/
 
-**Purpose:** Send or resend a 6-digit OTP
+**Purpose:** Send or resend a 4-digit OTP
 
 **Request:**
 
@@ -365,7 +365,7 @@ All endpoints return a **standardized envelope** format:
 ```json
 {
   "phone_number": "+233201234567",
-  "code": "123456",
+  "code": "1234",
   "purpose": "phone_reg"
 }
 ```
@@ -373,7 +373,7 @@ All endpoints return a **standardized envelope** format:
 **Fields:**
 
 - `phone_number` (required) - Phone that received OTP
-- `code` (required) - 6-digit OTP code
+- `code` (required) - 4-digit OTP code
 - `purpose` (optional) - Must match OTP purpose. Default: `phone_reg`
 
 **Response:** `200 OK`
@@ -503,9 +503,9 @@ OR
 ```json
 {
   "phone_number": "+233201234567",
-  "code": "123456",
+  "code": "1234",
   "new_password": "NewSecurePassword123!",
-  "new_password_confirm": "NewSecurePassword123!"
+  "confirm_password": "NewSecurePassword123!"
 }
 ```
 
@@ -543,7 +543,7 @@ Returns user object with role-specific profile data.
    ↓
 4. Display OTP input form
    ↓
-5. User enters 6-digit OTP
+5. User enters 4-digit OTP
    ↓
 6. POST /auth/otp/verify/ with phone_number, code, purpose="phone_reg"
    ├─ Success → Save tokens → Navigate to dashboard

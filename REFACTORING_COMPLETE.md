@@ -56,7 +56,7 @@ Backend validates and creates account
          ↓
 OTP dialog appears automatically
          ↓
-User enters 6-digit OTP
+User enters 4-digit OTP
          ↓
 Tokens stored securely → Dashboard
 ```
@@ -265,7 +265,7 @@ Update for production environment.
 Configure in backend `settings.py`
 
 ### OTP Configuration
-- Length: 6 digits
+- Length: 4 digits
 - Validity: 5 minutes
 - Purpose: `phone_reg` or `password_reset`
 

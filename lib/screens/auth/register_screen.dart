@@ -916,12 +916,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 }
 
 class _OTPDialog extends StatefulWidget {
+  final String email;
   final String phoneNumber;
   final VoidCallback onSuccess;
 
   const _OTPDialog({
     required this.phoneNumber,
     required this.onSuccess,
+    this.email = '',
   });
 
   @override
@@ -944,9 +946,9 @@ class _OTPDialogState extends State<_OTPDialog> {
   }
 
   void _handleVerify() async {
-    if (_otpController.text.isEmpty || _otpController.text.length != 6) {
+    if (_otpController.text.isEmpty || _otpController.text.length != ApiConstants.otpLength) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid 6-digit OTP')),
+        SnackBar(content: Text('Please enter a valid ${ApiConstants.otpLength}-digit OTP')),
       );
       return;
     }
@@ -1019,7 +1021,7 @@ Widget build(BuildContext context) {
               ),
               const SizedBox(height: 6),
               Text(
-                'Enter the 6-digit code sent to',
+                'Enter the ${ApiConstants.otpLength}-digit code sent to',
                 style: TextStyle(
                   fontSize: 13,
                   color: AppColors.textGray,
@@ -1075,7 +1077,7 @@ Widget build(BuildContext context) {
               TextField(
                 controller: _otpController,
                 enabled: !authService.isLoading,
-                maxLength: 6,
+                maxLength: ApiConstants.otpLength,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
@@ -1086,7 +1088,7 @@ Widget build(BuildContext context) {
                 ),
                 decoration: InputDecoration(
                   counterText: '',
-                  hintText: '------',
+                  hintText: '0000',
                   hintStyle: TextStyle(
                     fontSize: 24,
                     letterSpacing: 10,

@@ -154,7 +154,7 @@ POST /auth/register/ (backend validates and creates account)
     ↓
 OTP dialog appears automatically
     ↓
-User enters 6-digit OTP
+User enters 4-digit OTP
     ↓
 POST /auth/otp/verify/ (with purpose="phone_reg")
     ↓

@@ -33,7 +33,7 @@ class ApiConstants {
   static const String userDataKey = 'user_data';
 
   // OTP Configuration
-  static const int otpLength = 6;
+  static const int otpLength = 4;
   static const int otpExpiryMinutes = 5;
 
   // Account Lockout

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
+import '../../utils/api_constants.dart';
 import '../../utils/app_colors.dart';
 import '../../routes/app_routes.dart';
 
@@ -227,9 +228,9 @@ class _ResetOTPDialogState extends State<_ResetOTPDialog> {
   }
 
   void _handleVerifyOTP() {
-    if (_otpController.text.isEmpty || _otpController.text.length != 6) {
+    if (_otpController.text.isEmpty || _otpController.text.length != ApiConstants.otpLength) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid 6-digit OTP')),
+        SnackBar(content: Text('Please enter a valid ${ApiConstants.otpLength}-digit OTP')),
       );
       return;
     }
@@ -283,7 +284,7 @@ class _ResetOTPDialogState extends State<_ResetOTPDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Enter the 6-digit code sent to ${widget.phoneOrEmail}',
+                  'Enter the ${ApiConstants.otpLength}-digit code sent to ${widget.phoneOrEmail}',
                   style: const TextStyle(color: AppColors.textGray),
                 ),
                 const SizedBox(height: 16),
@@ -298,12 +299,12 @@ class _ResetOTPDialogState extends State<_ResetOTPDialog> {
                 TextField(
                   controller: _otpController,
                   enabled: !authService.isLoading,
-                  maxLength: 6,
+                  maxLength: ApiConstants.otpLength,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 20, letterSpacing: 2),
                   decoration: InputDecoration(
-                    hintText: '000000',
+                    hintText: '0000',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),

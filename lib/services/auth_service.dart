@@ -306,7 +306,7 @@ class AuthService extends ChangeNotifier {
           'phone_number': phoneNumber.trim(),
           'code': code.trim(),
           'new_password': newPassword,
-          'new_password_confirm': newPasswordConfirm,
+          'confirm_password': newPasswordConfirm,
         },
         parser: (json) => json,
       );
