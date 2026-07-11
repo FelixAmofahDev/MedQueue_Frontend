@@ -134,7 +134,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => _OTPDialog(
-        phoneNumber: _phoneController.text.trim(),
+        email: _emailController.text.trim(),
         onSuccess: () {
           Navigator.pop(context);
           Navigator.pushReplacementNamed(context, AppRoutes.patientHome);
@@ -921,9 +921,9 @@ class _OTPDialog extends StatefulWidget {
   final VoidCallback onSuccess;
 
   const _OTPDialog({
-    required this.phoneNumber,
+    required this.email,
     required this.onSuccess,
-    this.email = '',
+    this.phoneNumber = '',
   });
 
   @override
@@ -942,7 +942,7 @@ class _OTPDialogState extends State<_OTPDialog> {
   }
 
   Future<void> _sendOTP() async {
-    await _authService.sendOTP(widget.phoneNumber, OtpPurpose.phoneReg.value);
+    await _authService.sendOTP(widget.email, OtpPurpose.phoneReg.value);
   }
 
   void _handleVerify() async {
@@ -954,7 +954,7 @@ class _OTPDialogState extends State<_OTPDialog> {
     }
 
     final success = await _authService.verifyOTP(
-      phoneNumber: widget.phoneNumber,
+      email: widget.email,
       code: _otpController.text,
       purpose: OtpPurpose.phoneReg.value,
     );
@@ -1088,7 +1088,7 @@ Widget build(BuildContext context) {
                 ),
                 decoration: InputDecoration(
                   counterText: '',
-                  hintText: '0000',
+                  hintText: '000000',
                   hintStyle: TextStyle(
                     fontSize: 24,
                     letterSpacing: 10,

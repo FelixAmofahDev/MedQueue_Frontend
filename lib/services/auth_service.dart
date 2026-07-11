@@ -163,7 +163,7 @@ class AuthService extends ChangeNotifier {
 
   /// Verify OTP during registration or password reset
   Future<bool> verifyOTP({
-    required String phoneNumber,
+    required String email,
     required String code,
     required String purpose,
   }) async {
@@ -176,7 +176,7 @@ class AuthService extends ChangeNotifier {
       final response = await ApiClient.post<Map<String, dynamic>>(
         ApiConstants.otpVerifyEndpoint,
         body: {
-          'phone_number': phoneNumber.trim(),
+          'email': email.trim(),
           'code': code.trim(),
           'purpose': purpose,
         },
@@ -219,7 +219,7 @@ class AuthService extends ChangeNotifier {
   }
 
   /// Send OTP to phone number
-  Future<bool> sendOTP(String phoneNumber, String purpose) async {
+  Future<bool> sendOTP(String email, String purpose) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -228,7 +228,7 @@ class AuthService extends ChangeNotifier {
       final response = await ApiClient.post<Map<String, dynamic>>(
         ApiConstants.otpSendEndpoint,
         body: {
-          'phone_number': phoneNumber.trim(),
+          'email': email.trim(),
           'purpose': purpose,
         },
         parser: (json) => json,
